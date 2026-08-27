@@ -27,6 +27,7 @@ class EdgeCaseCategory(str, Enum):
 
 @dataclass(frozen=True)
 class GroundTruthUnit:
+    scenario_id: str
     member_record_ids: Tuple[str, ...]
     true_category: EdgeCaseCategory
     is_true_orphan: bool

@@ -1,0 +1,78 @@
+scenario_id,category,record_count,member_record_ids,has_valid_relationship,is_true_exception,description
+DUP-001,DUPLICATE,2,"[""SETTLEMENT-10b624fa0a35"", ""SETTLEMENT-36caf2e9edb6""]",True,False,Duplicate settlement records share native ID; no counterpart to match.
+DUP-002,DUPLICATE,3,"[""SETTLEMENT-59d69f19063b"", ""SETTLEMENT-2ca44216e127"", ""BANK-b0d53096ba8b""]",True,False,Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.
+DUP-003,DUPLICATE,2,"[""SETTLEMENT-9370c14b8a75"", ""SETTLEMENT-3783310bcc43""]",True,False,Duplicate settlement records share native ID; no counterpart to match.
+DUP-004,DUPLICATE,3,"[""SETTLEMENT-d70427a4c0e8"", ""SETTLEMENT-a09c604c82cf"", ""BANK-388c0587e9e7""]",True,False,Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.
+DUP-005,DUPLICATE,3,"[""SETTLEMENT-6f0bd61452f2"", ""SETTLEMENT-684e7cfd8e30"", ""BANK-1480ff0a1c0d""]",True,False,Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.
+DUP-006,DUPLICATE,2,"[""SETTLEMENT-b83b2133d2bf"", ""SETTLEMENT-d2e3e9a3046a""]",True,False,Duplicate settlement records share native ID; no counterpart to match.
+DUP-007,DUPLICATE,2,"[""SETTLEMENT-9b290c335c78"", ""SETTLEMENT-71483602611e""]",True,False,Duplicate settlement records share native ID; no counterpart to match.
+DUP-008,DUPLICATE,2,"[""SETTLEMENT-a3b13e2f3dc5"", ""SETTLEMENT-ad2eeb6ae861""]",True,False,Duplicate settlement records share native ID; no counterpart to match.
+DUP-009,DUPLICATE,3,"[""SETTLEMENT-fdf26fcabf99"", ""SETTLEMENT-b496f22c5656"", ""BANK-0d270af7b61b""]",True,False,Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.
+DUP-010,DUPLICATE,3,"[""SETTLEMENT-4f8eaba9f289"", ""SETTLEMENT-55ba95c86b1f"", ""BANK-826222fdb2e0""]",True,False,Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.
+FEE-001,FEE_DEDUCTED,2,"[""SETTLEMENT-c9e0a17ad92b"", ""BANK-db7d3433b689""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-002,FEE_DEDUCTED,2,"[""SETTLEMENT-08dbe748c7b5"", ""BANK-0d47e41a697d""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-003,FEE_DEDUCTED,2,"[""SETTLEMENT-5325c9609d7d"", ""BANK-c7e664baf9c4""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-004,FEE_DEDUCTED,2,"[""SETTLEMENT-1dbdb31372ca"", ""BANK-d9afb4338043""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-005,FEE_DEDUCTED,2,"[""SETTLEMENT-a02364aaa8cb"", ""BANK-64716f87e816""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-006,FEE_DEDUCTED,2,"[""SETTLEMENT-046a5745764a"", ""BANK-d2220375cbd2""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-007,FEE_DEDUCTED,2,"[""SETTLEMENT-acee25147f8e"", ""BANK-196862444632""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-008,FEE_DEDUCTED,2,"[""SETTLEMENT-4671a9707585"", ""BANK-fff20085c3fd""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-009,FEE_DEDUCTED,2,"[""SETTLEMENT-9af69dc37f51"", ""BANK-a7bf371877cc""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-010,FEE_DEDUCTED,2,"[""SETTLEMENT-d991a8bcc3b5"", ""BANK-beb693a7b1b5""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-011,FEE_DEDUCTED,2,"[""SETTLEMENT-928087cfc33c"", ""BANK-28568ff38956""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+FEE-012,FEE_DEDUCTED,2,"[""SETTLEMENT-f08ea071ad43"", ""BANK-1eac3dc8e405""]",True,False,Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.
+LATE-001,LATE_ARRIVING,2,"[""SETTLEMENT-b3c185470baa"", ""LEDGER-8f47e0ab7d72""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-002,LATE_ARRIVING,2,"[""SETTLEMENT-f4d9a06b464e"", ""BANK-667b0fe30443""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-003,LATE_ARRIVING,2,"[""SETTLEMENT-d9537503a287"", ""BANK-5e8efb61a82d""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-004,LATE_ARRIVING,2,"[""SETTLEMENT-e68da581a5a9"", ""LEDGER-dae512f4a0e9""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-005,LATE_ARRIVING,2,"[""SETTLEMENT-3112547a110c"", ""BANK-16cf99911dc5""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-006,LATE_ARRIVING,2,"[""SETTLEMENT-e49d846c8f99"", ""LEDGER-c1e0f262f339""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-007,LATE_ARRIVING,2,"[""SETTLEMENT-1148ec634d99"", ""LEDGER-6f3e42bf3d35""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-008,LATE_ARRIVING,2,"[""SETTLEMENT-d8f3b984a4cd"", ""BANK-e59f0ac63859""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-009,LATE_ARRIVING,2,"[""SETTLEMENT-f0cc729e031c"", ""LEDGER-3a4626b9fbe2""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+LATE-010,LATE_ARRIVING,2,"[""SETTLEMENT-de77c4134f80"", ""BANK-1170b47ecdae""]",True,False,Counterpart record arrives later than the configured date window; no deterministic match.
+NARR-001,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-9809896cf62b"", ""BANK-7bbbcc8e690c""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-002,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-8460ebacc914"", ""BANK-5d781dfcd68e""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-003,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-6d7f43a77d2c"", ""LEDGER-82444018a42d""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-004,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-771a1ce9ea47"", ""BANK-9ee5c9cfeeb1""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-005,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-6b554a42f47f"", ""LEDGER-5d56dda80abb""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-006,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-0a24efcacc5e"", ""LEDGER-798ffe84678d""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-007,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-5eed17aeea01"", ""BANK-59abc4849d6c""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-008,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-c9d7c4c092c4"", ""LEDGER-6101154d512c""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-009,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-ea8fdb94bc30"", ""LEDGER-ce406ecb7216""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+NARR-010,INCONSISTENT_NARRATION,2,"[""SETTLEMENT-9081f2cdd13f"", ""LEDGER-f9f7a6d252cc""]",True,False,Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.
+REFD-001,PARTIAL_REFUND,2,"[""SETTLEMENT-4ffa23fc614c"", ""BANK-d10b6498c136""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-002,PARTIAL_REFUND,2,"[""SETTLEMENT-400de982ecae"", ""BANK-d07abc9ef0a8""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-003,PARTIAL_REFUND,2,"[""SETTLEMENT-418bd494b842"", ""BANK-ba0d1a24004b""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-004,PARTIAL_REFUND,2,"[""SETTLEMENT-e7f76e4423cc"", ""BANK-98f6fd87ca31""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-005,PARTIAL_REFUND,2,"[""SETTLEMENT-e1503c618a25"", ""BANK-5b9eb29303c9""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-006,PARTIAL_REFUND,2,"[""SETTLEMENT-7d1ec25bd364"", ""BANK-b9978c7a3e90""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-007,PARTIAL_REFUND,2,"[""SETTLEMENT-dd338839c43e"", ""BANK-77b9218435a1""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-008,PARTIAL_REFUND,2,"[""SETTLEMENT-447df7b04f3b"", ""BANK-6a4131359533""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-009,PARTIAL_REFUND,2,"[""SETTLEMENT-57a2c2530572"", ""BANK-67df701ec0bf""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+REFD-010,PARTIAL_REFUND,2,"[""SETTLEMENT-e456e3427a02"", ""BANK-e1ddbab33e40""]",True,False,Partial refund reduces bank amount below settlement amount; not a full reconciliation.
+RND-009,ROUNDING_DIFFERENCE,2,"[""SETTLEMENT-cbda83d784e5"", ""BANK-90c124f1455e""]",True,False,Amounts differ by more than tolerance; should not match.
+RND-010,ROUNDING_DIFFERENCE,2,"[""SETTLEMENT-ba38e9321da8"", ""LEDGER-eafe9bc5e95b""]",True,False,Amounts differ by more than tolerance; should not match.
+RND-011,ROUNDING_DIFFERENCE,2,"[""SETTLEMENT-840baf7d3669"", ""BANK-0f6b0258fad9""]",True,False,Amounts differ by more than tolerance; should not match.
+RND-012,ROUNDING_DIFFERENCE,2,"[""SETTLEMENT-b96eb0e8e23c"", ""BANK-c41738c70765""]",True,False,Amounts differ by more than tolerance; should not match.
+RND-013,ROUNDING_DIFFERENCE,2,"[""SETTLEMENT-76c1a0889127"", ""LEDGER-34d982abba7e""]",True,False,Amounts differ by more than tolerance; should not match.
+SPLT-001,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-9e0bdab945af"", ""BANK-6778ef65451a"", ""BANK-2f3e47da9872""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-002,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-8d277319bbc1"", ""BANK-975a3afda413"", ""BANK-84a6115fcc63""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-003,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-3ac7e095cb48"", ""BANK-0383f506b9e5"", ""BANK-6ab226ac7451""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-004,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-2f8cb481689a"", ""BANK-da4e605bc14d"", ""BANK-f20801971a21""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-005,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-e8b942d40647"", ""BANK-19f800bdb062"", ""BANK-a3723cb88462""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-006,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-2773f0fda092"", ""BANK-021ca9eee0ff"", ""BANK-5b784c0c19f5""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-007,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-3e1802ec91fc"", ""BANK-34c516f34394"", ""BANK-470ffc6e91fc""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-008,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-95f5cad0a993"", ""BANK-1816da6e7edf"", ""BANK-b65adbbf7096""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-009,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-bc9ab3cb7d1f"", ""BANK-49d1f3f2ce48"", ""BANK-7813e4532060""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+SPLT-010,SPLIT_SETTLEMENT,3,"[""SETTLEMENT-0ae469e8ad73"", ""BANK-c12ecab8d134"", ""BANK-23dc898cfba7""]",True,False,One settlement is split across two bank credits; no individual pair matches exactly.
+UNQ-001,TRUE_ORPHAN,1,"[""SETTLEMENT-35f7b8d6b85a""]",False,True,Single record with no counterpart in any other source.
+UNQ-002,TRUE_ORPHAN,1,"[""SETTLEMENT-099856e14ad5""]",False,True,Single record with no counterpart in any other source.
+UNQ-003,TRUE_ORPHAN,1,"[""BANK-006fd7400357""]",False,True,Single record with no counterpart in any other source.
+UNQ-004,TRUE_ORPHAN,1,"[""LEDGER-3a86e271ba0d""]",False,True,Single record with no counterpart in any other source.
+UNQ-005,TRUE_ORPHAN,1,"[""LEDGER-7055b332c7a0""]",False,True,Single record with no counterpart in any other source.
+UNQ-006,TRUE_ORPHAN,1,"[""LEDGER-105f227f1e7f""]",False,True,Single record with no counterpart in any other source.
+UNQ-007,TRUE_ORPHAN,1,"[""LEDGER-7c050bb1e4e1""]",False,True,Single record with no counterpart in any other source.
+UNQ-008,TRUE_ORPHAN,1,"[""BANK-8ab1c26c72ee""]",False,True,Single record with no counterpart in any other source.
+UNQ-009,TRUE_ORPHAN,1,"[""BANK-9c3718edf7a6""]",False,True,Single record with no counterpart in any other source.
+UNQ-010,TRUE_ORPHAN,1,"[""LEDGER-8c80a8afc206""]",False,True,Single record with no counterpart in any other source.

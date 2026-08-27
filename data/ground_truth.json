@@ -1,0 +1,3182 @@
+{
+  "total_scenarios": 120,
+  "categories": {
+    "EXACT_MATCH": 20,
+    "T_PLUS_DELAY": 15,
+    "FEE_DEDUCTED": 12,
+    "PARTIAL_REFUND": 10,
+    "SPLIT_SETTLEMENT": 10,
+    "ROUNDING_DIFFERENCE": 13,
+    "INCONSISTENT_NARRATION": 10,
+    "DUPLICATE": 10,
+    "TRUE_ORPHAN": 10,
+    "LATE_ARRIVING": 10
+  },
+  "scenarios": [
+    {
+      "scenario_id": "FEE-012",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-012-001",
+          "order_id_hint": "ORD-FEE-012-A",
+          "amount_paise": 121000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-012-001",
+          "order_id_hint": "ORD-FEE-012-B",
+          "amount_paise": 116000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "DUP-002",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-002-001",
+          "order_id_hint": "ORD-DUP-002",
+          "amount_paise": 591000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-002-002",
+          "order_id_hint": "ORD-DUP-002",
+          "amount_paise": 591000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-DUP-002-001",
+          "order_id_hint": "ORD-DUP-002-B",
+          "amount_paise": 641000,
+          "record_date": "2026-08-06",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
+    },
+    {
+      "scenario_id": "UNQ-008",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-UNQ-008-001",
+          "order_id_hint": "ORD-UNQ-008",
+          "amount_paise": 607000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "DUP-004",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-004-001",
+          "order_id_hint": "ORD-DUP-004",
+          "amount_paise": 843000,
+          "record_date": "2026-08-01",
+          "narration": "Wallet transfer"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-004-002",
+          "order_id_hint": "ORD-DUP-004",
+          "amount_paise": 843000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-DUP-004-001",
+          "order_id_hint": "ORD-DUP-004-B",
+          "amount_paise": 893000,
+          "record_date": "2026-08-06",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
+    },
+    {
+      "scenario_id": "FEE-008",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-008-001",
+          "order_id_hint": "ORD-FEE-008-A",
+          "amount_paise": 292000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-008-001",
+          "order_id_hint": "ORD-FEE-008-B",
+          "amount_paise": 287000,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "EXACT-019",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-019-001",
+          "order_id_hint": "ORD-EXACT-019",
+          "amount_paise": 168000,
+          "record_date": "2026-08-01",
+          "narration": "Client remittance"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-019-001",
+          "order_id_hint": "ORD-EXACT-019",
+          "amount_paise": 168000,
+          "record_date": "2026-08-02",
+          "narration": "UPI transaction"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "REFD-003",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-003-001",
+          "order_id_hint": "ORD-REFD-003-A",
+          "amount_paise": 299000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-003-001",
+          "order_id_hint": "ORD-REFD-003-B",
+          "amount_paise": 279000,
+          "record_date": "2026-08-02",
+          "narration": "Payment for services rendered"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "SPLT-005",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-005-001",
+          "order_id_hint": "ORD-SPLT-005-A",
+          "amount_paise": 211000,
+          "record_date": "2026-08-01",
+          "narration": "Bank credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-005-001",
+          "order_id_hint": "ORD-SPLT-005-B",
+          "amount_paise": 104500,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-005-002",
+          "order_id_hint": "ORD-SPLT-005-C",
+          "amount_paise": 106500,
+          "record_date": "2026-08-02",
+          "narration": "Reconciliation entry"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "NARR-006",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-006-001",
+          "order_id_hint": "ORD-NARR-006-A",
+          "amount_paise": 1585000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-006"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-006-B",
+          "order_id_hint": "ORD-NARR-006-B",
+          "amount_paise": 1685000,
+          "record_date": "2026-08-16",
+          "narration": "Ledger entry for ORD-NARR-006"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "REFD-009",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-009-001",
+          "order_id_hint": "ORD-REFD-009-A",
+          "amount_paise": 805000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-009-001",
+          "order_id_hint": "ORD-REFD-009-B",
+          "amount_paise": 785000,
+          "record_date": "2026-08-01",
+          "narration": "Wallet transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "DUP-008",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-008-001",
+          "order_id_hint": "ORD-DUP-008",
+          "amount_paise": 1597000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-008-002",
+          "order_id_hint": "ORD-DUP-008",
+          "amount_paise": 1597000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; no counterpart to match."
+    },
+    {
+      "scenario_id": "EXACT-010",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-010-001",
+          "order_id_hint": "ORD-EXACT-010",
+          "amount_paise": 759000,
+          "record_date": "2026-08-01",
+          "narration": "Reconciliation entry"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-010",
+          "order_id_hint": "ORD-EXACT-010",
+          "amount_paise": 759000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "RND-010",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-010-001",
+          "order_id_hint": "ORD-RND-010-A",
+          "amount_paise": 276000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-010-B",
+          "order_id_hint": "ORD-RND-010-B",
+          "amount_paise": 276500,
+          "record_date": "2026-08-02",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Amounts differ by more than tolerance; should not match."
+    },
+    {
+      "scenario_id": "UNQ-003",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-UNQ-003-001",
+          "order_id_hint": "ORD-UNQ-003",
+          "amount_paise": 202000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "LATE-007",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-007-001",
+          "order_id_hint": "ORD-LATE-007-A",
+          "amount_paise": 166000,
+          "record_date": "2026-08-01",
+          "narration": "Reconciliation entry"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-LATE-007-B",
+          "order_id_hint": "ORD-LATE-007-B",
+          "amount_paise": 166000,
+          "record_date": "2026-08-11",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "REFD-010",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-010-001",
+          "order_id_hint": "ORD-REFD-010-A",
+          "amount_paise": 131000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-010-001",
+          "order_id_hint": "ORD-REFD-010-B",
+          "amount_paise": 56000,
+          "record_date": "2026-08-02",
+          "narration": "Order fulfillment payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "TDLY-010",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-010-001",
+          "order_id_hint": "ORD-TDLY-010",
+          "amount_paise": 79000,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-010",
+          "order_id_hint": "ORD-TDLY-010",
+          "amount_paise": 79000,
+          "record_date": "2026-08-03",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "UNQ-007",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-UNQ-007",
+          "order_id_hint": "ORD-UNQ-007",
+          "amount_paise": 206000,
+          "record_date": "2026-08-01",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "LATE-002",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-002-001",
+          "order_id_hint": "ORD-LATE-002-A",
+          "amount_paise": 261000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-LATE-002-001",
+          "order_id_hint": "ORD-LATE-002-B",
+          "amount_paise": 261000,
+          "record_date": "2026-08-11",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "LATE-004",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-004-001",
+          "order_id_hint": "ORD-LATE-004-A",
+          "amount_paise": 188000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-LATE-004-B",
+          "order_id_hint": "ORD-LATE-004-B",
+          "amount_paise": 188000,
+          "record_date": "2026-08-15",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "UNQ-009",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-UNQ-009-001",
+          "order_id_hint": "ORD-UNQ-009",
+          "amount_paise": 1608000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "REFD-005",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-005-001",
+          "order_id_hint": "ORD-REFD-005-A",
+          "amount_paise": 2051000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-005-001",
+          "order_id_hint": "ORD-REFD-005-B",
+          "amount_paise": 1976000,
+          "record_date": "2026-08-02",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "DUP-005",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-005-001",
+          "order_id_hint": "ORD-DUP-005",
+          "amount_paise": 1594000,
+          "record_date": "2026-08-01",
+          "narration": "Reconciliation entry"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-005-002",
+          "order_id_hint": "ORD-DUP-005",
+          "amount_paise": 1594000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-DUP-005-001",
+          "order_id_hint": "ORD-DUP-005-B",
+          "amount_paise": 1644000,
+          "record_date": "2026-08-06",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
+    },
+    {
+      "scenario_id": "SPLT-008",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-008-001",
+          "order_id_hint": "ORD-SPLT-008-A",
+          "amount_paise": 2064000,
+          "record_date": "2026-08-01",
+          "narration": "Client remittance"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-008-001",
+          "order_id_hint": "ORD-SPLT-008-B",
+          "amount_paise": 1027000,
+          "record_date": "2026-08-02",
+          "narration": "Reconciliation entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-008-002",
+          "order_id_hint": "ORD-SPLT-008-C",
+          "amount_paise": 1037000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "SPLT-010",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-010-001",
+          "order_id_hint": "ORD-SPLT-010-A",
+          "amount_paise": 1566000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-010-001",
+          "order_id_hint": "ORD-SPLT-010-B",
+          "amount_paise": 781000,
+          "record_date": "2026-08-01",
+          "narration": "Payment for services rendered"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-010-002",
+          "order_id_hint": "ORD-SPLT-010-C",
+          "amount_paise": 785000,
+          "record_date": "2026-08-02",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "SPLT-009",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-009-001",
+          "order_id_hint": "ORD-SPLT-009-A",
+          "amount_paise": 190000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-009-001",
+          "order_id_hint": "ORD-SPLT-009-B",
+          "amount_paise": 90000,
+          "record_date": "2026-08-02",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-009-002",
+          "order_id_hint": "ORD-SPLT-009-C",
+          "amount_paise": 100000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "EXACT-012",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-012-001",
+          "order_id_hint": "ORD-EXACT-012",
+          "amount_paise": 86000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-012",
+          "order_id_hint": "ORD-EXACT-012",
+          "amount_paise": 86000,
+          "record_date": "2026-08-02",
+          "narration": "Bank credit"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "SPLT-007",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-007-001",
+          "order_id_hint": "ORD-SPLT-007-A",
+          "amount_paise": 213000,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-007-001",
+          "order_id_hint": "ORD-SPLT-007-B",
+          "amount_paise": 101500,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-007-002",
+          "order_id_hint": "ORD-SPLT-007-C",
+          "amount_paise": 111500,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "NARR-002",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-002-001",
+          "order_id_hint": "ORD-NARR-002-A",
+          "amount_paise": 2081000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-002"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-NARR-002-001",
+          "order_id_hint": "ORD-NARR-002-B",
+          "amount_paise": 2181000,
+          "record_date": "2026-08-11",
+          "narration": "Transfer mentioning ORD-NARR-002"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "DUP-006",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-006-001",
+          "order_id_hint": "ORD-DUP-006",
+          "amount_paise": 145000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-006-002",
+          "order_id_hint": "ORD-DUP-006",
+          "amount_paise": 145000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; no counterpart to match."
+    },
+    {
+      "scenario_id": "NARR-001",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-001-001",
+          "order_id_hint": "ORD-NARR-001-A",
+          "amount_paise": 1080000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-001"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-NARR-001-001",
+          "order_id_hint": "ORD-NARR-001-B",
+          "amount_paise": 1130000,
+          "record_date": "2026-08-15",
+          "narration": "Transfer mentioning ORD-NARR-001"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "TDLY-007",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-007-001",
+          "order_id_hint": "ORD-TDLY-007",
+          "amount_paise": 126000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-007",
+          "order_id_hint": "ORD-TDLY-007",
+          "amount_paise": 126000,
+          "record_date": "2026-08-02",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "EXACT-001",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-001-001",
+          "order_id_hint": "ORD-EXACT-001",
+          "amount_paise": 1500000,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-001-001",
+          "order_id_hint": "ORD-EXACT-001",
+          "amount_paise": 1500000,
+          "record_date": "2026-08-02",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "RND-001",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-001-001",
+          "order_id_hint": "ORD-RND-001-A",
+          "amount_paise": 1567000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-001-B",
+          "order_id_hint": "ORD-RND-001-B",
+          "amount_paise": 1567003,
+          "record_date": "2026-08-02",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "NARR-009",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-009-001",
+          "order_id_hint": "ORD-NARR-009-A",
+          "amount_paise": 1588000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-009"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-009-B",
+          "order_id_hint": "ORD-NARR-009-B",
+          "amount_paise": 1788000,
+          "record_date": "2026-08-13",
+          "narration": "Ledger entry for ORD-NARR-009"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "REFD-006",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-006-001",
+          "order_id_hint": "ORD-REFD-006-A",
+          "amount_paise": 177000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-006-001",
+          "order_id_hint": "ORD-REFD-006-B",
+          "amount_paise": 127000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "UNQ-005",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-UNQ-005",
+          "order_id_hint": "ORD-UNQ-005",
+          "amount_paise": 604000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "RND-005",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-005-001",
+          "order_id_hint": "ORD-RND-005-A",
+          "amount_paise": 1571000,
+          "record_date": "2026-08-01",
+          "narration": "Bank credit"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-005-B",
+          "order_id_hint": "ORD-RND-005-B",
+          "amount_paise": 1571001,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "TDLY-015",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-015-001",
+          "order_id_hint": "ORD-TDLY-015",
+          "amount_paise": 534000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-TDLY-015-001",
+          "order_id_hint": "ORD-TDLY-015",
+          "amount_paise": 534000,
+          "record_date": "2026-08-03",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "TDLY-003",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-003-001",
+          "order_id_hint": "ORD-TDLY-003",
+          "amount_paise": 97000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-003",
+          "order_id_hint": "ORD-TDLY-003",
+          "amount_paise": 97000,
+          "record_date": "2026-08-03",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "RND-012",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-012-001",
+          "order_id_hint": "ORD-RND-012-A",
+          "amount_paise": 178000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-012-001",
+          "order_id_hint": "ORD-RND-012-B",
+          "amount_paise": 179000,
+          "record_date": "2026-08-01",
+          "narration": "Wallet transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Amounts differ by more than tolerance; should not match."
+    },
+    {
+      "scenario_id": "DUP-009",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-009-001",
+          "order_id_hint": "ORD-DUP-009",
+          "amount_paise": 598000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-009-002",
+          "order_id_hint": "ORD-DUP-009",
+          "amount_paise": 598000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-DUP-009-001",
+          "order_id_hint": "ORD-DUP-009-B",
+          "amount_paise": 648000,
+          "record_date": "2026-08-06",
+          "narration": "Payment for services rendered"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
+    },
+    {
+      "scenario_id": "EXACT-008",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-008-001",
+          "order_id_hint": "ORD-EXACT-008",
+          "amount_paise": 82000,
+          "record_date": "2026-08-01",
+          "narration": "Bank credit"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-008",
+          "order_id_hint": "ORD-EXACT-008",
+          "amount_paise": 82000,
+          "record_date": "2026-08-02",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "FEE-004",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-004-001",
+          "order_id_hint": "ORD-FEE-004-A",
+          "amount_paise": 238000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-004-001",
+          "order_id_hint": "ORD-FEE-004-B",
+          "amount_paise": 236500,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "SPLT-001",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-001-001",
+          "order_id_hint": "ORD-SPLT-001-A",
+          "amount_paise": 1057000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-001-001",
+          "order_id_hint": "ORD-SPLT-001-B",
+          "amount_paise": 527500,
+          "record_date": "2026-08-01",
+          "narration": "Wallet transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-001-002",
+          "order_id_hint": "ORD-SPLT-001-C",
+          "amount_paise": 529500,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "RND-008",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-008-001",
+          "order_id_hint": "ORD-RND-008-A",
+          "amount_paise": 124000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-008-001",
+          "order_id_hint": "ORD-RND-008-B",
+          "amount_paise": 124005,
+          "record_date": "2026-08-02",
+          "narration": "Bank credit"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "LATE-005",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-005-001",
+          "order_id_hint": "ORD-LATE-005-A",
+          "amount_paise": 614000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-LATE-005-001",
+          "order_id_hint": "ORD-LATE-005-B",
+          "amount_paise": 614000,
+          "record_date": "2026-08-15",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "NARR-008",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-008-001",
+          "order_id_hint": "ORD-NARR-008-A",
+          "amount_paise": 212000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-008"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-008-B",
+          "order_id_hint": "ORD-NARR-008-B",
+          "amount_paise": 312000,
+          "record_date": "2026-08-21",
+          "narration": "Ledger entry for ORD-NARR-008"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "EXACT-016",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-016-001",
+          "order_id_hint": "ORD-EXACT-016",
+          "amount_paise": 65000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-016-001",
+          "order_id_hint": "ORD-EXACT-016",
+          "amount_paise": 65000,
+          "record_date": "2026-08-02",
+          "narration": "Settlement transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "FEE-006",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-006-001",
+          "order_id_hint": "ORD-FEE-006-A",
+          "amount_paise": 1040000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-006-001",
+          "order_id_hint": "ORD-FEE-006-B",
+          "amount_paise": 1035000,
+          "record_date": "2026-08-02",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "NARR-007",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-007-001",
+          "order_id_hint": "ORD-NARR-007-A",
+          "amount_paise": 2086000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-007"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-NARR-007-001",
+          "order_id_hint": "ORD-NARR-007-B",
+          "amount_paise": 2186000,
+          "record_date": "2026-08-19",
+          "narration": "Transfer mentioning ORD-NARR-007"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "SPLT-006",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-006-001",
+          "order_id_hint": "ORD-SPLT-006-A",
+          "amount_paise": 162000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-006-001",
+          "order_id_hint": "ORD-SPLT-006-B",
+          "amount_paise": 79000,
+          "record_date": "2026-08-02",
+          "narration": "Wallet transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-006-002",
+          "order_id_hint": "ORD-SPLT-006-C",
+          "amount_paise": 83000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "EXACT-005",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-005-001",
+          "order_id_hint": "ORD-EXACT-005",
+          "amount_paise": 254000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-005",
+          "order_id_hint": "ORD-EXACT-005",
+          "amount_paise": 254000,
+          "record_date": "2026-08-02",
+          "narration": "Payment for services rendered"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "EXACT-013",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-013-001",
+          "order_id_hint": "ORD-EXACT-013",
+          "amount_paise": 112000,
+          "record_date": "2026-08-01",
+          "narration": "Bank credit"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-013",
+          "order_id_hint": "ORD-EXACT-013",
+          "amount_paise": 112000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "FEE-011",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-011-001",
+          "order_id_hint": "ORD-FEE-011-A",
+          "amount_paise": 295000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-011-001",
+          "order_id_hint": "ORD-FEE-011-B",
+          "amount_paise": 292500,
+          "record_date": "2026-08-02",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "LATE-010",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-010-001",
+          "order_id_hint": "ORD-LATE-010-A",
+          "amount_paise": 369000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-LATE-010-001",
+          "order_id_hint": "ORD-LATE-010-B",
+          "amount_paise": 369000,
+          "record_date": "2026-08-11",
+          "narration": "ACH credit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "TDLY-005",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-005-001",
+          "order_id_hint": "ORD-TDLY-005",
+          "amount_paise": 174000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-005",
+          "order_id_hint": "ORD-TDLY-005",
+          "amount_paise": 174000,
+          "record_date": "2026-08-02",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "DUP-007",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-007-001",
+          "order_id_hint": "ORD-DUP-007",
+          "amount_paise": 1096000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-007-002",
+          "order_id_hint": "ORD-DUP-007",
+          "amount_paise": 1096000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; no counterpart to match."
+    },
+    {
+      "scenario_id": "FEE-002",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-002-001",
+          "order_id_hint": "ORD-FEE-002-A",
+          "amount_paise": 786000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-002-001",
+          "order_id_hint": "ORD-FEE-002-B",
+          "amount_paise": 783500,
+          "record_date": "2026-08-01",
+          "narration": "Payment for services rendered"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "RND-011",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-011-001",
+          "order_id_hint": "ORD-RND-011-A",
+          "amount_paise": 327000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-011-001",
+          "order_id_hint": "ORD-RND-011-B",
+          "amount_paise": 328000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Amounts differ by more than tolerance; should not match."
+    },
+    {
+      "scenario_id": "RND-004",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-004-001",
+          "order_id_hint": "ORD-RND-004-A",
+          "amount_paise": 220000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-004-B",
+          "order_id_hint": "ORD-RND-004-B",
+          "amount_paise": 220003,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "EXACT-002",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-002-001",
+          "order_id_hint": "ORD-EXACT-002",
+          "amount_paise": 126000,
+          "record_date": "2026-08-01",
+          "narration": "Client remittance"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-002-001",
+          "order_id_hint": "ORD-EXACT-002",
+          "amount_paise": 126000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "FEE-003",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-003-001",
+          "order_id_hint": "ORD-FEE-003-A",
+          "amount_paise": 112000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-003-001",
+          "order_id_hint": "ORD-FEE-003-B",
+          "amount_paise": 110500,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "EXACT-014",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-014-001",
+          "order_id_hint": "ORD-EXACT-014",
+          "amount_paise": 2013000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-014-001",
+          "order_id_hint": "ORD-EXACT-014",
+          "amount_paise": 2013000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "FEE-005",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-005-001",
+          "order_id_hint": "ORD-FEE-005-A",
+          "amount_paise": 1539000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-005-001",
+          "order_id_hint": "ORD-FEE-005-B",
+          "amount_paise": 1534000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "TDLY-001",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-001-001",
+          "order_id_hint": "ORD-TDLY-001",
+          "amount_paise": 120000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-TDLY-001-001",
+          "order_id_hint": "ORD-TDLY-001",
+          "amount_paise": 120000,
+          "record_date": "2026-08-03",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "RND-007",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-007-001",
+          "order_id_hint": "ORD-RND-007-A",
+          "amount_paise": 323000,
+          "record_date": "2026-08-01",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-007-001",
+          "order_id_hint": "ORD-RND-007-B",
+          "amount_paise": 323002,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "TDLY-002",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-002-001",
+          "order_id_hint": "ORD-TDLY-002",
+          "amount_paise": 96000,
+          "record_date": "2026-08-01",
+          "narration": "Client remittance"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-002",
+          "order_id_hint": "ORD-TDLY-002",
+          "amount_paise": 96000,
+          "record_date": "2026-08-02",
+          "narration": "Wallet transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "REFD-001",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-001-001",
+          "order_id_hint": "ORD-REFD-001-A",
+          "amount_paise": 1547000,
+          "record_date": "2026-08-01",
+          "narration": "Payment for services rendered"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-001-001",
+          "order_id_hint": "ORD-REFD-001-B",
+          "amount_paise": 1472000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "DUP-003",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-003-001",
+          "order_id_hint": "ORD-DUP-003",
+          "amount_paise": 592000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-003-002",
+          "order_id_hint": "ORD-DUP-003",
+          "amount_paise": 592000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; no counterpart to match."
+    },
+    {
+      "scenario_id": "UNQ-006",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-UNQ-006",
+          "order_id_hint": "ORD-UNQ-006",
+          "amount_paise": 355000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "DUP-010",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-010-001",
+          "order_id_hint": "ORD-DUP-010",
+          "amount_paise": 174000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-010-002",
+          "order_id_hint": "ORD-DUP-010",
+          "amount_paise": 174000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-DUP-010-001",
+          "order_id_hint": "ORD-DUP-010-B",
+          "amount_paise": 224000,
+          "record_date": "2026-08-06",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
+    },
+    {
+      "scenario_id": "LATE-003",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-003-001",
+          "order_id_hint": "ORD-LATE-003-A",
+          "amount_paise": 212000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-LATE-003-001",
+          "order_id_hint": "ORD-LATE-003-B",
+          "amount_paise": 212000,
+          "record_date": "2026-08-08",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "EXACT-015",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-015-001",
+          "order_id_hint": "ORD-EXACT-015",
+          "amount_paise": 514000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-015",
+          "order_id_hint": "ORD-EXACT-015",
+          "amount_paise": 514000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "DUP-001",
+      "category": "DUPLICATE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-001-001",
+          "order_id_hint": "ORD-DUP-001",
+          "amount_paise": 240000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        },
+        {
+          "synthetic_ref": "REC-SET-002",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-DUP-001-002",
+          "order_id_hint": "ORD-DUP-001",
+          "amount_paise": 240000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Duplicate settlement records share native ID; no counterpart to match."
+    },
+    {
+      "scenario_id": "LATE-009",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-009-001",
+          "order_id_hint": "ORD-LATE-009-A",
+          "amount_paise": 243000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-LATE-009-B",
+          "order_id_hint": "ORD-LATE-009-B",
+          "amount_paise": 243000,
+          "record_date": "2026-08-11",
+          "narration": "Payment for services rendered"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "TDLY-011",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-011-001",
+          "order_id_hint": "ORD-TDLY-011",
+          "amount_paise": 80000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-TDLY-011-001",
+          "order_id_hint": "ORD-TDLY-011",
+          "amount_paise": 80000,
+          "record_date": "2026-08-02",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "EXACT-020",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-020-001",
+          "order_id_hint": "ORD-EXACT-020",
+          "amount_paise": 269000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-020",
+          "order_id_hint": "ORD-EXACT-020",
+          "amount_paise": 269000,
+          "record_date": "2026-08-02",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "NARR-010",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-010-001",
+          "order_id_hint": "ORD-NARR-010-A",
+          "amount_paise": 339000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-010"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-010-B",
+          "order_id_hint": "ORD-NARR-010-B",
+          "amount_paise": 539000,
+          "record_date": "2026-08-11",
+          "narration": "Ledger entry for ORD-NARR-010"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "TDLY-006",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-006-001",
+          "order_id_hint": "ORD-TDLY-006",
+          "amount_paise": 125000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-006",
+          "order_id_hint": "ORD-TDLY-006",
+          "amount_paise": 125000,
+          "record_date": "2026-08-02",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "TDLY-012",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-012-001",
+          "order_id_hint": "ORD-TDLY-012",
+          "amount_paise": 106000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-TDLY-012-001",
+          "order_id_hint": "ORD-TDLY-012",
+          "amount_paise": 106000,
+          "record_date": "2026-08-02",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "LATE-001",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-001-001",
+          "order_id_hint": "ORD-LATE-001-A",
+          "amount_paise": 260000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-LATE-001-B",
+          "order_id_hint": "ORD-LATE-001-B",
+          "amount_paise": 260000,
+          "record_date": "2026-08-15",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "EXACT-006",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-006-001",
+          "order_id_hint": "ORD-EXACT-006",
+          "amount_paise": 105000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-006",
+          "order_id_hint": "ORD-EXACT-006",
+          "amount_paise": 105000,
+          "record_date": "2026-08-02",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "EXACT-009",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-009-001",
+          "order_id_hint": "ORD-EXACT-009",
+          "amount_paise": 2008000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-009-001",
+          "order_id_hint": "ORD-EXACT-009",
+          "amount_paise": 2008000,
+          "record_date": "2026-08-02",
+          "narration": "Monthly subscription fee"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "NARR-004",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-004-001",
+          "order_id_hint": "ORD-NARR-004-A",
+          "amount_paise": 1083000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-004"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-NARR-004-001",
+          "order_id_hint": "ORD-NARR-004-B",
+          "amount_paise": 1183000,
+          "record_date": "2026-08-21",
+          "narration": "Transfer mentioning ORD-NARR-004"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "TDLY-009",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-009-001",
+          "order_id_hint": "ORD-TDLY-009",
+          "amount_paise": 778000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-009",
+          "order_id_hint": "ORD-TDLY-009",
+          "amount_paise": 778000,
+          "record_date": "2026-08-02",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "FEE-010",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-010-001",
+          "order_id_hint": "ORD-FEE-010-A",
+          "amount_paise": 169000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-010-001",
+          "order_id_hint": "ORD-FEE-010-B",
+          "amount_paise": 166500,
+          "record_date": "2026-08-02",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "UNQ-004",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-UNQ-004",
+          "order_id_hint": "ORD-UNQ-004",
+          "amount_paise": 853000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "RND-003",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-003-001",
+          "order_id_hint": "ORD-RND-003-A",
+          "amount_paise": 1069000,
+          "record_date": "2026-08-01",
+          "narration": "Client remittance"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-003-B",
+          "order_id_hint": "ORD-RND-003-B",
+          "amount_paise": 1069007,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "EXACT-003",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-003-001",
+          "order_id_hint": "ORD-EXACT-003",
+          "amount_paise": 252000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-003-001",
+          "order_id_hint": "ORD-EXACT-003",
+          "amount_paise": 252000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "SPLT-004",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-004-001",
+          "order_id_hint": "ORD-SPLT-004-A",
+          "amount_paise": 135000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-004-001",
+          "order_id_hint": "ORD-SPLT-004-B",
+          "amount_paise": 66500,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-004-002",
+          "order_id_hint": "ORD-SPLT-004-C",
+          "amount_paise": 68500,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "UNQ-010",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-UNQ-010",
+          "order_id_hint": "ORD-UNQ-010",
+          "amount_paise": 609000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "TDLY-013",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-013-001",
+          "order_id_hint": "ORD-TDLY-013",
+          "amount_paise": 782000,
+          "record_date": "2026-08-01",
+          "narration": "Vendor payout"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-013",
+          "order_id_hint": "ORD-TDLY-013",
+          "amount_paise": 782000,
+          "record_date": "2026-08-03",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "REFD-007",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-007-001",
+          "order_id_hint": "ORD-REFD-007-A",
+          "amount_paise": 2053000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-007-001",
+          "order_id_hint": "ORD-REFD-007-B",
+          "amount_paise": 1978000,
+          "record_date": "2026-08-02",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "FEE-001",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-001-001",
+          "order_id_hint": "ORD-FEE-001-A",
+          "amount_paise": 160000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-001-001",
+          "order_id_hint": "ORD-FEE-001-B",
+          "amount_paise": 158500,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "UNQ-002",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-UNQ-002-001",
+          "order_id_hint": "ORD-UNQ-002",
+          "amount_paise": 226000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "FEE-009",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-009-001",
+          "order_id_hint": "ORD-FEE-009-A",
+          "amount_paise": 93000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-009-001",
+          "order_id_hint": "ORD-FEE-009-B",
+          "amount_paise": 88000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "UNQ-001",
+      "category": "TRUE_ORPHAN",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-UNQ-001-001",
+          "order_id_hint": "ORD-UNQ-001",
+          "amount_paise": 600000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Single record with no counterpart in any other source."
+    },
+    {
+      "scenario_id": "SPLT-002",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-002-001",
+          "order_id_hint": "ORD-SPLT-002-A",
+          "amount_paise": 1558000,
+          "record_date": "2026-08-01",
+          "narration": "UPI transaction"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-002-001",
+          "order_id_hint": "ORD-SPLT-002-B",
+          "amount_paise": 774000,
+          "record_date": "2026-08-02",
+          "narration": "Adjustment entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-002-002",
+          "order_id_hint": "ORD-SPLT-002-C",
+          "amount_paise": 784000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "TDLY-008",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-008-001",
+          "order_id_hint": "ORD-TDLY-008",
+          "amount_paise": 1027000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-008",
+          "order_id_hint": "ORD-TDLY-008",
+          "amount_paise": 1027000,
+          "record_date": "2026-08-02",
+          "narration": "Vendor payout"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "FEE-007",
+      "category": "FEE_DEDUCTED",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-FEE-007-001",
+          "order_id_hint": "ORD-FEE-007-A",
+          "amount_paise": 166000,
+          "record_date": "2026-08-01",
+          "narration": "Order fulfillment payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-FEE-007-001",
+          "order_id_hint": "ORD-FEE-007-B",
+          "amount_paise": 164500,
+          "record_date": "2026-08-02",
+          "narration": "Bank credit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
+    },
+    {
+      "scenario_id": "REFD-002",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-002-001",
+          "order_id_hint": "ORD-REFD-002-A",
+          "amount_paise": 148000,
+          "record_date": "2026-08-01",
+          "narration": "Direct deposit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-002-001",
+          "order_id_hint": "ORD-REFD-002-B",
+          "amount_paise": 98000,
+          "record_date": "2026-08-02",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "TDLY-014",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-014-001",
+          "order_id_hint": "ORD-TDLY-014",
+          "amount_paise": 783000,
+          "record_date": "2026-08-01",
+          "narration": "Commission disbursement"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-TDLY-014",
+          "order_id_hint": "ORD-TDLY-014",
+          "amount_paise": 783000,
+          "record_date": "2026-08-03",
+          "narration": "Bank credit"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "EXACT-007",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-007-001",
+          "order_id_hint": "ORD-EXACT-007",
+          "amount_paise": 131000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-007-001",
+          "order_id_hint": "ORD-EXACT-007",
+          "amount_paise": 131000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "TDLY-004",
+      "category": "T_PLUS_DELAY",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-TDLY-004-001",
+          "order_id_hint": "ORD-TDLY-004",
+          "amount_paise": 173000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-TDLY-004-001",
+          "order_id_hint": "ORD-TDLY-004",
+          "amount_paise": 173000,
+          "record_date": "2026-08-02",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
+    },
+    {
+      "scenario_id": "SPLT-003",
+      "category": "SPLIT_SETTLEMENT",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-SPLT-003-001",
+          "order_id_hint": "ORD-SPLT-003-A",
+          "amount_paise": 184000,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-003-001",
+          "order_id_hint": "ORD-SPLT-003-B",
+          "amount_paise": 90000,
+          "record_date": "2026-08-01",
+          "narration": "Reconciliation entry"
+        },
+        {
+          "synthetic_ref": "REC-BNK-002",
+          "source_type": "BANK",
+          "source_native_id": "BNK-SPLT-003-002",
+          "order_id_hint": "ORD-SPLT-003-C",
+          "amount_paise": 94000,
+          "record_date": "2026-08-02",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "One settlement is split across two bank credits; no individual pair matches exactly."
+    },
+    {
+      "scenario_id": "EXACT-018",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-018-001",
+          "order_id_hint": "ORD-EXACT-018",
+          "amount_paise": 1517000,
+          "record_date": "2026-08-01",
+          "narration": "Direct deposit"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-018",
+          "order_id_hint": "ORD-EXACT-018",
+          "amount_paise": 1517000,
+          "record_date": "2026-08-02",
+          "narration": "Client remittance"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "REFD-008",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-008-001",
+          "order_id_hint": "ORD-REFD-008-A",
+          "amount_paise": 104000,
+          "record_date": "2026-08-01",
+          "narration": "Direct deposit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-008-001",
+          "order_id_hint": "ORD-REFD-008-B",
+          "amount_paise": 29000,
+          "record_date": "2026-08-01",
+          "narration": "Invoice settlement"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "NARR-003",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-003-001",
+          "order_id_hint": "ORD-NARR-003-A",
+          "amount_paise": 282000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-003"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-003-B",
+          "order_id_hint": "ORD-NARR-003-B",
+          "amount_paise": 382000,
+          "record_date": "2026-08-12",
+          "narration": "Ledger entry for ORD-NARR-003"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "EXACT-011",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-011-001",
+          "order_id_hint": "ORD-EXACT-011",
+          "amount_paise": 60000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-EXACT-011",
+          "order_id_hint": "ORD-EXACT-011",
+          "amount_paise": 60000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "LATE-006",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-006-001",
+          "order_id_hint": "ORD-LATE-006-A",
+          "amount_paise": 365000,
+          "record_date": "2026-08-01",
+          "narration": "Payment for services rendered"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-LATE-006-B",
+          "order_id_hint": "ORD-LATE-006-B",
+          "amount_paise": 365000,
+          "record_date": "2026-08-22",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    },
+    {
+      "scenario_id": "NARR-005",
+      "category": "INCONSISTENT_NARRATION",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-NARR-005-001",
+          "order_id_hint": "ORD-NARR-005-A",
+          "amount_paise": 2084000,
+          "record_date": "2026-08-01",
+          "narration": "Payment related to ORD-NARR-005"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-NARR-005-B",
+          "order_id_hint": "ORD-NARR-005-B",
+          "amount_paise": 2184000,
+          "record_date": "2026-08-19",
+          "narration": "Ledger entry for ORD-NARR-005"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
+    },
+    {
+      "scenario_id": "RND-006",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-006-001",
+          "order_id_hint": "ORD-RND-006-A",
+          "amount_paise": 172000,
+          "record_date": "2026-08-01",
+          "narration": "Wire transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-006-001",
+          "order_id_hint": "ORD-RND-006-B",
+          "amount_paise": 172002,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "RND-009",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-009-001",
+          "order_id_hint": "ORD-RND-009-A",
+          "amount_paise": 225000,
+          "record_date": "2026-08-01",
+          "narration": "Refund processing"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-009-001",
+          "order_id_hint": "ORD-RND-009-B",
+          "amount_paise": 225250,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Amounts differ by more than tolerance; should not match."
+    },
+    {
+      "scenario_id": "REFD-004",
+      "category": "PARTIAL_REFUND",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-REFD-004-001",
+          "order_id_hint": "ORD-REFD-004-A",
+          "amount_paise": 300000,
+          "record_date": "2026-08-01",
+          "narration": "ACH credit"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-REFD-004-001",
+          "order_id_hint": "ORD-REFD-004-B",
+          "amount_paise": 250000,
+          "record_date": "2026-08-02",
+          "narration": "Wire transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
+    },
+    {
+      "scenario_id": "EXACT-004",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-004-001",
+          "order_id_hint": "ORD-EXACT-004",
+          "amount_paise": 128000,
+          "record_date": "2026-08-01",
+          "narration": "Online payment"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-004-001",
+          "order_id_hint": "ORD-EXACT-004",
+          "amount_paise": 128000,
+          "record_date": "2026-08-01",
+          "narration": "Card settlement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "RND-002",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-002-001",
+          "order_id_hint": "ORD-RND-002-A",
+          "amount_paise": 118000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-RND-002-001",
+          "order_id_hint": "ORD-RND-002-B",
+          "amount_paise": 118001,
+          "record_date": "2026-08-01",
+          "narration": "Bank credit"
+        }
+      ],
+      "expected_outcome": "MATCH_AMOUNT_DATE",
+      "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
+    },
+    {
+      "scenario_id": "RND-013",
+      "category": "ROUNDING_DIFFERENCE",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-RND-013-001",
+          "order_id_hint": "ORD-RND-013-A",
+          "amount_paise": 329000,
+          "record_date": "2026-08-01",
+          "narration": "Payment gateway transfer"
+        },
+        {
+          "synthetic_ref": "REC-LED-001",
+          "source_type": "LEDGER",
+          "source_native_id": "ORD-RND-013-B",
+          "order_id_hint": "ORD-RND-013-B",
+          "amount_paise": 329500,
+          "record_date": "2026-08-01",
+          "narration": "Settlement transfer"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Amounts differ by more than tolerance; should not match."
+    },
+    {
+      "scenario_id": "EXACT-017",
+      "category": "EXACT_MATCH",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-EXACT-017-001",
+          "order_id_hint": "ORD-EXACT-017",
+          "amount_paise": 166000,
+          "record_date": "2026-08-01",
+          "narration": "Monthly subscription fee"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-EXACT-017-001",
+          "order_id_hint": "ORD-EXACT-017",
+          "amount_paise": 166000,
+          "record_date": "2026-08-02",
+          "narration": "Commission disbursement"
+        }
+      ],
+      "expected_outcome": "MATCH_EXACT_ID",
+      "description": "Two records share the same order identifier across different sources with identical amounts."
+    },
+    {
+      "scenario_id": "LATE-008",
+      "category": "LATE_ARRIVING",
+      "record_specs": [
+        {
+          "synthetic_ref": "REC-SET-001",
+          "source_type": "SETTLEMENT",
+          "source_native_id": "SET-LATE-008-001",
+          "order_id_hint": "ORD-LATE-008-A",
+          "amount_paise": 867000,
+          "record_date": "2026-08-01",
+          "narration": "Wallet transfer"
+        },
+        {
+          "synthetic_ref": "REC-BNK-001",
+          "source_type": "BANK",
+          "source_native_id": "BNK-LATE-008-001",
+          "order_id_hint": "ORD-LATE-008-B",
+          "amount_paise": 867000,
+          "record_date": "2026-08-22",
+          "narration": "Direct deposit"
+        }
+      ],
+      "expected_outcome": "NO_MATCH",
+      "description": "Counterpart record arrives later than the configured date window; no deterministic match."
+    }
+  ]
+}

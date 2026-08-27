@@ -23,3 +23,7 @@ dmypy.json
 .vscode/
 *.swp
 *.swo
+
+.tmp_test_day3/
+
+.tmp_test_day3/
