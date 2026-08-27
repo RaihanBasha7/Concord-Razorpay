@@ -326,7 +326,7 @@ class TestScenarioFixtureConstruction:
 
 
 # ---------------------------------------------------------------------------
-# Acceptance tests — skipped until deterministic matcher is implemented
+# Acceptance tests — verify documented reconciliation contract behavior
 # ---------------------------------------------------------------------------
 
 
@@ -339,9 +339,8 @@ class TestReconciliationScenarios:
       - Configuration required
       - Expected accepted decisions or unresolved records
 
-    All tests are skipped because the deterministic matcher (Day 2 MVP)
-    has not yet been implemented. They are designed to require minimal
-    changes once the matcher API is available.
+    The deterministic Layer 1 matcher is implemented and these tests verify
+    that it behaves according to the documented reconciliation contract.
     """
 
     def test_scenario_1_unique_exact_identifier_match(self):

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "concord"
+version = "0.1.0"
+description = "Intelligent settlement reconciliation — precision-over-coverage deterministic matching."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["reconciliation*", "tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

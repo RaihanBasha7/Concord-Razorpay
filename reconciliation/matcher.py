@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, Tuple
 
 from reconciliation.domain.models import (
     MatchRule,
@@ -26,19 +26,18 @@ def reconcile(
     """
     record_list = list(records)
 
-    seen_ids: Set[str] = set()
+    id_counts: dict[str, int] = defaultdict(int)
     for record in record_list:
-        if record.record_id in seen_ids:
-            raise ValueError(
-                "record_id values must be unique within a reconciliation run."
-            )
-        seen_ids.add(record.record_id)
+        id_counts[record.record_id] += 1
+
+    duplicate_ids: Set[str] = {rid for rid, count in id_counts.items() if count > 1}
+    excluded_ids: Set[str] = set(duplicate_ids)
 
     matched_ids: Set[str] = set()
     decisions: List[ReconciliationDecision] = []
 
-    _apply_exact_id_matching(record_list, matched_ids, decisions)
-    _apply_amount_date_matching(record_list, matched_ids, decisions, config)
+    _apply_exact_id_matching(record_list, matched_ids, decisions, excluded_ids)
+    _apply_amount_date_matching(record_list, matched_ids, decisions, config, excluded_ids)
 
     residual_ids = tuple(
         sorted(r.record_id for r in record_list if r.record_id not in matched_ids)
@@ -54,6 +53,7 @@ def _apply_exact_id_matching(
     records: List[NormalizedRecord],
     matched_ids: Set[str],
     decisions: List[ReconciliationDecision],
+    excluded_ids: Set[str],
 ) -> None:
     groups: dict[str, List[NormalizedRecord]] = defaultdict(list)
     for record in records:
@@ -61,7 +61,7 @@ def _apply_exact_id_matching(
             groups[record.order_id_hint].append(record)
 
     for _hint, group in groups.items():
-        if any(r.record_id in matched_ids for r in group):
+        if any(r.record_id in matched_ids or r.record_id in excluded_ids for r in group):
             continue
 
         if len(group) == 2:
@@ -84,8 +84,12 @@ def _apply_amount_date_matching(
     matched_ids: Set[str],
     decisions: List[ReconciliationDecision],
     config: MatcherConfig,
+    excluded_ids: Set[str],
 ) -> None:
-    residuals = [r for r in records if r.record_id not in matched_ids]
+    residuals = [
+        r for r in records
+        if r.record_id not in matched_ids and r.record_id not in excluded_ids
+    ]
 
     eligible_pairs: List[Tuple[NormalizedRecord, NormalizedRecord]] = []
     for i, a in enumerate(residuals):

@@ -183,3 +183,53 @@ class TestAmountDateRule:
         assert result.decisions[0].member_record_ids == ("A", "B")
         assert result.decisions[0].rule_or_rationale == MatchRule.EXACT_ID.value
         assert result.residual_record_ids == ("C",)
+
+    def test_amount_difference_exactly_at_tolerance_matches(self):
+        records = [
+            make_record(
+                record_id="A",
+                source_type=SourceType.SETTLEMENT,
+                source_native_id="SET-1",
+                order_id_hint=None,
+                amount_paise=100_000,
+                date=date(2026, 8, 25),
+            ),
+            make_record(
+                record_id="B",
+                source_type=SourceType.BANK,
+                source_native_id="BNK-1",
+                order_id_hint=None,
+                amount_paise=100_100,
+                date=date(2026, 8, 26),
+            ),
+        ]
+        config = MatcherConfig(amount_tolerance_paise=100, date_window_days=2)
+        result = reconcile(records, config)
+        assert len(result.decisions) == 1
+        assert result.decisions[0].member_record_ids == ("A", "B")
+        assert result.residual_record_ids == ()
+
+    def test_date_difference_exactly_at_window_matches(self):
+        records = [
+            make_record(
+                record_id="A",
+                source_type=SourceType.SETTLEMENT,
+                source_native_id="SET-1",
+                order_id_hint=None,
+                amount_paise=100_000,
+                date=date(2026, 8, 25),
+            ),
+            make_record(
+                record_id="B",
+                source_type=SourceType.BANK,
+                source_native_id="BNK-1",
+                order_id_hint=None,
+                amount_paise=100_000,
+                date=date(2026, 8, 27),
+            ),
+        ]
+        config = MatcherConfig(amount_tolerance_paise=0, date_window_days=2)
+        result = reconcile(records, config)
+        assert len(result.decisions) == 1
+        assert result.decisions[0].member_record_ids == ("A", "B")
+        assert result.residual_record_ids == ()
