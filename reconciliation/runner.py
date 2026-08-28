@@ -1,0 +1,155 @@
+"""
+Day 4.5 — End-to-end Layer 2 runner.
+
+Connects the existing Day 4 components:
+
+  Residual scenario
+    -> reconstruction (Layer2Case)
+    -> candidate retrieval (RetrievalResult)
+    -> proposal (ProposalService via ProposalOrchestrator)
+    -> validation (deterministic, Groq-free)
+    -> audit record (local JSONL)
+
+The runner processes only a configurable, small number of residual scenarios by
+default to control API usage. It does NOT perform routing/threshold decisions,
+evaluation against ground truth, or bulk analytics.
+
+The LLM-facing context is the sanitized production record context only; the
+category-encoded scenario_id is never sent to the model. A neutral internal
+correlation ID is used for the audit trail.
+"""
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
+from reconciliation.audit import Auditor, make_audit_record
+from reconciliation.domain.models import NormalizedRecord
+from reconciliation.layer2 import Layer2Case, reconstruct_layer2_case
+from reconciliation.loader import (
+    ResidualScenario,
+    load_normalized_records,
+    load_residuals,
+)
+from reconciliation.proposal_orchestration import ProposalOrchestrator
+from reconciliation.proposal_validation import ProposalOutcomeType
+from reconciliation.retrieval import (
+    RetrievalConfig,
+    RetrievalResult,
+    retrieve_candidates,
+)
+
+DEFAULT_SAMPLE_LIMIT = 5
+
+
+@dataclass
+class RunSummary:
+    """Concise per-outcome tally across processed scenarios."""
+
+    attempted: int
+    by_outcome: Dict[str, int] = field(default_factory=dict)
+    audit_path: Optional[str] = None
+    diagnostics: List[str] = field(default_factory=list)
+
+
+class Day4Runner:
+    """
+    Drives the Day 4.5 Layer 2 flow for a limited set of residual scenarios.
+
+    The orchestrator is injected so tests can supply a fake provider boundary
+    with zero network/API-key dependency.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_dir: Path | str,
+        orchestrator: ProposalOrchestrator,
+        limit: int = DEFAULT_SAMPLE_LIMIT,
+        auditor: Optional[Auditor] = None,
+        retrieval_config: Optional[RetrievalConfig] = None,
+    ) -> None:
+        if limit < 1:
+            raise ValueError("limit must be at least 1.")
+        self._data_dir = Path(data_dir)
+        self._orchestrator = orchestrator
+        self._limit = limit
+        self._auditor = auditor
+        self._retrieval_config = retrieval_config or RetrievalConfig()
+        self._audit_failures = 0
+
+    def run(self) -> RunSummary:
+        normalized = load_normalized_records(self._data_dir)
+        residuals = load_residuals(self._data_dir)[: self._limit]
+
+        by_outcome: Dict[str, int] = {}
+        diagnostics: List[str] = []
+        for residual in residuals:
+            outcome = self._process_one(residual, normalized)
+            by_outcome[outcome.outcome.value] = (
+                by_outcome.get(outcome.outcome.value, 0) + 1
+            )
+            if outcome.diagnostic:
+                diagnostics.append(outcome.diagnostic)
+
+        return RunSummary(
+            attempted=len(residuals),
+            by_outcome=by_outcome,
+            audit_path=(
+                str(self._auditor.path)
+                if self._auditor and self._auditor.path
+                else None
+            ),
+            diagnostics=diagnostics,
+        )
+
+    def _process_one(
+        self,
+        residual: ResidualScenario,
+        normalized: Tuple[NormalizedRecord, ...],
+    ) -> "object":
+        normalized_records = tuple(normalized)
+        correlation_id = uuid.uuid4().hex
+
+        case = reconstruct_layer2_case(
+            scenario_id=residual.scenario_id,
+            member_record_ids=residual.member_record_ids,
+            normalized_records=normalized_records,
+        )
+        retrieval: RetrievalResult = retrieve_candidates(
+            case, normalized_records, self._retrieval_config
+        )
+
+        outcome = self._orchestrator.resolve(case, retrieval)
+
+        member_ids = [r.record_id for r in case.member_records]
+        candidate_ids = [c.record.record_id for c in retrieval.candidates]
+        seen: set[str] = set()
+        presented_ids: List[str] = []
+        for rid in member_ids + candidate_ids:
+            if rid not in seen:
+                seen.add(rid)
+                presented_ids.append(rid)
+
+        record = make_audit_record(
+            correlation_id=correlation_id,
+            presented_record_ids=presented_ids,
+            outcome=outcome.outcome.value,
+            proposal=outcome.proposal,
+            reason=outcome.reason,
+        )
+
+        if self._auditor is not None:
+            if not self._auditor.write(record):
+                self._audit_failures += 1
+
+        return outcome
+
+    def print_summary(self, summary: RunSummary) -> None:
+        print(f"Day 4.5 Layer 2 run — scenarios attempted: {summary.attempted}")
+        if summary.audit_path:
+            print(f"Audit trail: {summary.audit_path}")
+        for outcome, count in sorted(summary.by_outcome.items()):
+            print(f"  {outcome:18s} {count}")
