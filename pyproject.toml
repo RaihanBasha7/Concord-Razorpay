@@ -8,6 +8,10 @@ version = "0.1.0"
 description = "Intelligent settlement reconciliation — precision-over-coverage deterministic matching."
 requires-python = ">=3.11"
 license = { text = "MIT" }
+dependencies = [
+    "groq>=1.0.0",
+    "pydantic>=2.0",
+]
 
 [project.optional-dependencies]
 dev = [
