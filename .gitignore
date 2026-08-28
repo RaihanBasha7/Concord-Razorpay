@@ -7,10 +7,13 @@ __pycache__/
 venv/
 .env
 .env.*
+!.env.example
 build/
 dist/
 *.egg-info/
 .eggs/
+# Generated runtime audit data
+data/*.jsonl
 .egg/
 .coverage
 htmlcov/
