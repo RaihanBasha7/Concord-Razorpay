@@ -46,6 +46,38 @@ def _sanitize(text: Optional[str]) -> str:
     return sanitized
 
 
+_TRANSIENT_ERROR_TYPES = frozenset({"rate_limit_error", "server_error"})
+_PERMANENT_ERROR_TYPES = frozenset(
+    {
+        "authentication_error",
+        "invalid_request_error",
+        "not_found_error",
+        "permission_error",
+    }
+)
+
+
+def _classify_api_error(exc: APIError) -> str:
+    """Classify a Groq APIError as transient, permanent, or unknown.
+
+    Uses the structured ``body`` attribute (server response) when available.
+    Never inspects or logs API keys, Authorization headers, or request payloads.
+    """
+    body = getattr(exc, "body", None) or {}
+    error_info = body.get("error") if isinstance(body, dict) else None
+    if isinstance(error_info, dict):
+        error_type = error_info.get("type", "")
+        if error_type in _TRANSIENT_ERROR_TYPES:
+            return "transient"
+        if error_type in _PERMANENT_ERROR_TYPES:
+            return "permanent"
+    return "unknown"
+
+
+def _is_transient_api_error(exc: APIError) -> bool:
+    return _classify_api_error(exc) == "transient"
+
+
 def _sleep(seconds: float) -> None:
     time.sleep(seconds)
 
@@ -202,9 +234,13 @@ class GroqStructuredProvider(StructuredCompletionProvider):
                     safe_detail=str(exc),
                 ) from exc
             except APIError as exc:
+                if _is_transient_api_error(exc) and attempt == 0:
+                    _sleep(2.0)
+                    continue
+                classification = _classify_api_error(exc)
                 raise GroqProviderError(
-                    f"Groq API error: {exc}",
-                    error_type=type(exc).__name__,
+                    f"Groq API error ({classification}): {exc}",
+                    error_type=f"{type(exc).__name__}[{classification}]",
                     safe_detail=str(exc),
                 ) from exc
             except Exception as exc:  # noqa: BLE001 - surface as provider error

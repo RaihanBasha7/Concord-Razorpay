@@ -24,6 +24,7 @@ from reconciliation.groq_provider import (
     GroqStructuredProvider,
     GroqTimeoutError,
     StructuredCompletionProvider,
+    _classify_api_error,
 )
 from reconciliation.layer2 import Layer2Case
 from reconciliation.proposal import PROPOSAL_JSON_SCHEMA, MatchProposal
@@ -341,6 +342,206 @@ class TestProviderRetry:
                 with patch("reconciliation.groq_provider._sleep") as mock_sleep:
                     provider = GroqStructuredProvider()
                     with pytest.raises(GroqProviderError, match="Groq API error"):
+                        provider.complete_structured(
+                            system_prompt="s",
+                            user_prompt="u",
+                            json_schema={"name": "x", "schema": {}},
+                        )
+                    assert fake_client.chat.completions.create.call_count == 1
+                    mock_sleep.assert_not_called()
+
+
+class TestApiErrorClassification:
+    def test_rate_limit_body_classified_as_transient(self):
+        exc = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
+        )
+        assert _classify_api_error(exc) == "transient"
+
+    def test_server_error_body_classified_as_transient(self):
+        exc = APIError(
+            "server error",
+            request=MagicMock(),
+            body={"error": {"type": "server_error", "message": "Internal server error"}},
+        )
+        assert _classify_api_error(exc) == "transient"
+
+    def test_auth_error_body_classified_as_permanent(self):
+        exc = APIError(
+            "auth",
+            request=MagicMock(),
+            body={"error": {"type": "authentication_error", "message": "Invalid API key"}},
+        )
+        assert _classify_api_error(exc) == "permanent"
+
+    def test_bad_request_body_classified_as_permanent(self):
+        exc = APIError(
+            "bad request",
+            request=MagicMock(),
+            body={"error": {"type": "invalid_request_error", "message": "Missing model"}},
+        )
+        assert _classify_api_error(exc) == "permanent"
+
+    def test_not_found_body_classified_as_permanent(self):
+        exc = APIError(
+            "not found",
+            request=MagicMock(),
+            body={"error": {"type": "not_found_error", "message": "Model not found"}},
+        )
+        assert _classify_api_error(exc) == "permanent"
+
+    def test_permission_error_body_classified_as_permanent(self):
+        exc = APIError(
+            "permission",
+            request=MagicMock(),
+            body={"error": {"type": "permission_error", "message": "Access denied"}},
+        )
+        assert _classify_api_error(exc) == "permanent"
+
+    def test_none_body_classified_as_unknown(self):
+        exc = APIError("unknown", request=MagicMock(), body=None)
+        assert _classify_api_error(exc) == "unknown"
+
+    def test_empty_body_classified_as_unknown(self):
+        exc = APIError("unknown", request=MagicMock(), body={})
+        assert _classify_api_error(exc) == "unknown"
+
+    def test_non_dict_body_classified_as_unknown(self):
+        exc = APIError(
+            "unknown",
+            request=MagicMock(),
+            body="not-a-dict",
+        )
+        assert _classify_api_error(exc) == "unknown"
+
+    def test_unrecognized_error_type_classified_as_unknown(self):
+        exc = APIError(
+            "unknown",
+            request=MagicMock(),
+            body={"error": {"type": "some_new_error", "message": "x"}},
+        )
+        assert _classify_api_error(exc) == "unknown"
+
+
+class TestProviderRetryTransientApiError:
+    def test_retries_rate_limit_once_then_succeeds(self):
+        fake_response = MagicMock()
+        fake_response.choices = [MagicMock()]
+        fake_response.choices[0].message.content = json.dumps(
+            {"proposed_match_ids": [], "confidence": 0.0, "rationale": "x"}
+        )
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = [
+            APIError(
+                "rate limit",
+                request=MagicMock(),
+                body={"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
+            ),
+            fake_response,
+        ]
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                with patch("reconciliation.groq_provider._sleep") as mock_sleep:
+                    provider = GroqStructuredProvider()
+                    result = provider.complete_structured(
+                        system_prompt="s",
+                        user_prompt="u",
+                        json_schema={"name": "x", "schema": {}},
+                    )
+                    assert result == {
+                        "proposed_match_ids": [],
+                        "confidence": 0.0,
+                        "rationale": "x",
+                    }
+                    assert fake_client.chat.completions.create.call_count == 2
+                    mock_sleep.assert_called_once_with(2.0)
+
+    def test_retries_server_error_once_then_succeeds(self):
+        fake_response = MagicMock()
+        fake_response.choices = [MagicMock()]
+        fake_response.choices[0].message.content = json.dumps(
+            {"proposed_match_ids": ["BANK-1"], "confidence": 0.8, "rationale": "x"}
+        )
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = [
+            APIError(
+                "server error",
+                request=MagicMock(),
+                body={"error": {"type": "server_error", "message": "Internal server error"}},
+            ),
+            fake_response,
+        ]
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                with patch("reconciliation.groq_provider._sleep") as mock_sleep:
+                    provider = GroqStructuredProvider()
+                    result = provider.complete_structured(
+                        system_prompt="s",
+                        user_prompt="u",
+                        json_schema={"name": "x", "schema": {}},
+                    )
+                    assert result["proposed_match_ids"] == ["BANK-1"]
+                    assert fake_client.chat.completions.create.call_count == 2
+                    mock_sleep.assert_called_once_with(2.0)
+
+    def test_rate_limit_twice_raises_after_retry(self):
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
+        )
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                with patch("reconciliation.groq_provider._sleep"):
+                    provider = GroqStructuredProvider()
+                    with pytest.raises(GroqProviderError, match="transient"):
+                        provider.complete_structured(
+                            system_prompt="s",
+                            user_prompt="u",
+                            json_schema={"name": "x", "schema": {}},
+                        )
+                    assert fake_client.chat.completions.create.call_count == 2
+
+    def test_auth_error_not_retried(self):
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = APIError(
+            "auth",
+            request=MagicMock(),
+            body={"error": {"type": "authentication_error", "message": "Invalid API key"}},
+        )
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                with patch("reconciliation.groq_provider._sleep") as mock_sleep:
+                    provider = GroqStructuredProvider()
+                    with pytest.raises(GroqProviderError, match="permanent"):
+                        provider.complete_structured(
+                            system_prompt="s",
+                            user_prompt="u",
+                            json_schema={"name": "x", "schema": {}},
+                        )
+                    assert fake_client.chat.completions.create.call_count == 1
+                    mock_sleep.assert_not_called()
+
+    def test_bad_request_not_retried(self):
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = APIError(
+            "bad request",
+            request=MagicMock(),
+            body={"error": {"type": "invalid_request_error", "message": "Missing model"}},
+        )
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                with patch("reconciliation.groq_provider._sleep") as mock_sleep:
+                    provider = GroqStructuredProvider()
+                    with pytest.raises(GroqProviderError, match="permanent"):
                         provider.complete_structured(
                             system_prompt="s",
                             user_prompt="u",

@@ -23,7 +23,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from reconciliation.audit import Auditor, make_audit_record
 from reconciliation.domain.models import NormalizedRecord

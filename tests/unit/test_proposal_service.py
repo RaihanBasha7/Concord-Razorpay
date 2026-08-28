@@ -12,8 +12,9 @@ from datetime import date
 import pytest
 
 from reconciliation.domain.models import SourceType
+from reconciliation.groq_provider import GroqProviderError, StructuredCompletionProvider
 from reconciliation.layer2 import Layer2Case
-from reconciliation.proposal_service import PromptBuilder
+from reconciliation.proposal_service import ProposalService, PromptBuilder
 from reconciliation.retrieval import CandidateRecord, RetrievalResult
 from tests.conftest import make_record
 
@@ -134,3 +135,38 @@ class TestPromptProductionBoundary:
         assert "threshold" not in text.lower()
         assert "auto-accept" not in text.lower()
         assert "confidence" not in text.lower() or "confidence between" in text
+
+
+class _FakeProvider(StructuredCompletionProvider):
+    def __init__(self, payload):
+        self._payload = payload
+
+    def complete_structured(self, *, system_prompt, user_prompt, json_schema):
+        return self._payload
+
+
+class TestProposalValidation:
+    def test_out_of_range_confidence_raises_groq_provider_error(self):
+        provider = _FakeProvider(
+            {
+                "proposed_match_ids": [],
+                "confidence": 1.5,
+                "rationale": "overconfident but invalid confidence",
+            }
+        )
+        service = ProposalService(provider)
+        case, retrieval = _case_and_retrieval()
+        with pytest.raises(GroqProviderError, match="Invalid structured proposal"):
+            service.propose(case, retrieval)
+
+    def test_missing_required_field_raises_groq_provider_error(self):
+        provider = _FakeProvider(
+            {
+                "proposed_match_ids": [],
+                "confidence": 0.8,
+            }
+        )
+        service = ProposalService(provider)
+        case, retrieval = _case_and_retrieval()
+        with pytest.raises(GroqProviderError, match="Invalid structured proposal"):
+            service.propose(case, retrieval)

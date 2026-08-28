@@ -38,7 +38,7 @@ PROPOSAL_JSON_SCHEMA: dict = {
                 "type": "array",
                 "items": {"type": "string"},
             },
-            "confidence": {"type": "number"},
+            "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "rationale": {"type": "string"},
         },
         "required": ["proposed_match_ids", "confidence", "rationale"],
