@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "dataset_seed": 42,
+  "fingerprint": "8dca28fe7e5c50655b8d0cfbf3bfe858c17f52af82d44dc70a6520eec6fa5e6d",
+  "files": {
+    "ground_truth.json": "8eff3307f09570061406b2715eff7409396166d5e23d99c9102817d99c370735",
+    "settlements.csv": "c2a0b226af8aaddfa52045cc4c664632e0c6559aa2c5d999a1b24447e4b85fd1",
+    "bank.csv": "0d224a2639cf809da946d7f69db03824c1921be249db3ba1ce8c6999d3955847",
+    "ledger.csv": "b21348c1017a80ece51e1cdf9f1bb1e2848e3d6e67808de163d546c9241ce42e",
+    "residuals.csv": "83e1d429bab25c2cb345236f312948ab306ad4c102df7799de196d59d7984665"
+  }
+}
