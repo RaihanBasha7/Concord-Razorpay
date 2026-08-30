@@ -12,8 +12,10 @@ build/
 dist/
 *.egg-info/
 .eggs/
-# Generated runtime audit data
-data/*.jsonl
+# Generated runtime audit data — keep canonical artifact in git,
+# archive files are gitignored (they regenerate with each run).
+data/layer2_full_audit.*.jsonl
+data/layer2_full_audit.jsonl.tmp
 .egg/
 .coverage
 htmlcov/
