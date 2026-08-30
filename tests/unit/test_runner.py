@@ -114,6 +114,87 @@ class TestRunnerLimit:
         assert provider.calls == 1
 
 
+class TestRunnerStartOffset:
+    def test_start_offset_skips_initial_scenarios(self):
+        """With start_offset=3 and limit=2, scenarios 3 and 4 (0-indexed)
+        are processed, not scenarios 0 and 1."""
+        provider = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        runner = Day4Runner(
+            data_dir=_data_dir(),
+            orchestrator=_service(provider),
+            limit=2,
+            auditor=CapturingAuditor(),
+            start_offset=3,
+        )
+        summary = runner.run()
+        assert summary.attempted == 2
+        assert provider.calls == 2
+
+    def test_start_offset_zero_is_default(self):
+        """start_offset=0 behaves identically to no offset."""
+        provider = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        auditor1 = CapturingAuditor()
+        runner1 = Day4Runner(
+            data_dir=_data_dir(),
+            orchestrator=_service(provider),
+            limit=3,
+            auditor=auditor1,
+            start_offset=0,
+        )
+        summary1 = runner1.run()
+
+        provider2 = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        auditor2 = CapturingAuditor()
+        runner2 = Day4Runner(
+            data_dir=_data_dir(),
+            orchestrator=_service(provider2),
+            limit=3,
+            auditor=auditor2,
+        )
+        summary2 = runner2.run()
+
+        # Same number of scenarios, same outcomes.
+        assert summary1.attempted == summary2.attempted == 3
+        # Same presented record IDs (same underlying scenarios).
+        ids1 = [r.presented_record_ids for r in auditor1.records]
+        ids2 = [r.presented_record_ids for r in auditor2.records]
+        assert ids1 == ids2
+
+    def test_start_offset_rejects_negative(self):
+        provider = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        with pytest.raises(ValueError, match="start_offset must be non-negative"):
+            Day4Runner(
+                data_dir=_data_dir(),
+                orchestrator=_service(provider),
+                limit=3,
+                start_offset=-1,
+            )
+
+    def test_start_offset_beyond_end_yields_zero_scenarios(self):
+        """If start_offset exceeds available scenarios, no scenarios are processed."""
+        provider = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        runner = Day4Runner(
+            data_dir=_data_dir(),
+            orchestrator=_service(provider),
+            limit=5,
+            auditor=CapturingAuditor(),
+            start_offset=9999,
+        )
+        summary = runner.run()
+        assert summary.attempted == 0
+        assert provider.calls == 0
+
+
 class TestRunnerAuditCoversSuccessAndFailure:
     def test_success_and_failure_both_audited(self):
         provider = ScriptedProvider(

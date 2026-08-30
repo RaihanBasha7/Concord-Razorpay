@@ -18,6 +18,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from reconciliation.api.routes import create_router
@@ -89,7 +90,7 @@ def create_app(db_path: Path | str = "data/concord.db") -> FastAPI:
     # Set CONCORD_CORS_ORIGINS="https://app.example.com" for production.
     # Multiple origins: comma-separated,
     #   e.g. "https://app.example.com,https://admin.example.com"
-    cors_origins_raw = os.environ.get("CONCORD_CORS_ORIGINS", "").strip()
+    cors_origins_raw = os.environ.get("CONCORD_CORS_ORIGINS", "*").strip()
     if cors_origins_raw:
         if cors_origins_raw == "*":
             allowed_origins = ["*"]
@@ -110,5 +111,10 @@ def create_app(db_path: Path | str = "data/concord.db") -> FastAPI:
         layer2_mode="not_executed",
     )
     app.include_router(router, prefix="/batches", tags=["batches"])
+
+    # Serve the frontend from / — mount LAST so API routes take priority.
+    frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
+    if frontend_dir.is_dir():
+        app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
     return app

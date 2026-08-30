@@ -1637,15 +1637,15 @@ class TestCORSConfiguration:
         # is not in allow_methods.
         assert resp.status_code == 400
 
-    def test_no_cors_headers_when_middleware_absent(
+    def test_cors_defaults_to_wildcard_when_env_unset(
         self, no_cors_client: TestClient):
-        """With no CORS config, cross-origin requests get no CORS headers."""
+        """With no CORS config, defaults to wildcard for dev convenience."""
         resp = no_cors_client.get(
             "/health",
             headers={"Origin": "http://localhost:3000"},
         )
         assert resp.status_code == 200
-        assert "access-control-allow-origin" not in resp.headers
+        assert resp.headers.get("access-control-allow-origin") == "*"
 
     def test_wildcard_allows_any_origin(self, tmp_path: Path):
         """CONCORD_CORS_ORIGINS=* grants access to all origins."""

@@ -426,38 +426,29 @@ class TestApiErrorClassification:
 
 
 class TestProviderRetryTransientApiError:
-    def test_retries_rate_limit_once_then_succeeds(self):
-        fake_response = MagicMock()
-        fake_response.choices = [MagicMock()]
-        fake_response.choices[0].message.content = json.dumps(
-            {"proposed_match_ids": [], "confidence": 0.0, "rationale": "x"}
-        )
+    def test_rate_limit_raises_immediately_no_provider_retry(self):
+        """Rate-limit errors are NOT retried at the provider level.
+
+        Orchestrator-level retry (with proper backoff) handles rate limits.
+        Provider only retries server/connection errors to avoid stacking.
+        """
         fake_client = MagicMock()
-        fake_client.chat.completions.create.side_effect = [
-            APIError(
-                "rate limit",
-                request=MagicMock(),
-                body={"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
-            ),
-            fake_response,
-        ]
+        fake_client.chat.completions.create.side_effect = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={"error": {"type": "rate_limit_error", "message": "Rate limit exceeded"}},
+        )
 
         with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
             with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
-                with patch("reconciliation.groq_provider._sleep") as mock_sleep:
-                    provider = GroqStructuredProvider()
-                    result = provider.complete_structured(
+                provider = GroqStructuredProvider()
+                with pytest.raises(GroqProviderError):
+                    provider.complete_structured(
                         system_prompt="s",
                         user_prompt="u",
                         json_schema={"name": "x", "schema": {}},
                     )
-                    assert result == {
-                        "proposed_match_ids": [],
-                        "confidence": 0.0,
-                        "rationale": "x",
-                    }
-                    assert fake_client.chat.completions.create.call_count == 2
-                    mock_sleep.assert_called_once_with(2.0)
+                assert fake_client.chat.completions.create.call_count == 1
 
     def test_retries_server_error_once_then_succeeds(self):
         fake_response = MagicMock()
@@ -488,7 +479,8 @@ class TestProviderRetryTransientApiError:
                     assert fake_client.chat.completions.create.call_count == 2
                     mock_sleep.assert_called_once_with(2.0)
 
-    def test_rate_limit_twice_raises_after_retry(self):
+    def test_rate_limit_twice_raises_immediately(self):
+        """Repeated rate-limit errors still raise immediately (no provider retry)."""
         fake_client = MagicMock()
         fake_client.chat.completions.create.side_effect = APIError(
             "rate limit",
@@ -498,15 +490,14 @@ class TestProviderRetryTransientApiError:
 
         with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
             with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
-                with patch("reconciliation.groq_provider._sleep"):
-                    provider = GroqStructuredProvider()
-                    with pytest.raises(GroqProviderError, match="transient"):
-                        provider.complete_structured(
-                            system_prompt="s",
-                            user_prompt="u",
-                            json_schema={"name": "x", "schema": {}},
-                        )
-                    assert fake_client.chat.completions.create.call_count == 2
+                provider = GroqStructuredProvider()
+                with pytest.raises(GroqProviderError, match="transient"):
+                    provider.complete_structured(
+                        system_prompt="s",
+                        user_prompt="u",
+                        json_schema={"name": "x", "schema": {}},
+                    )
+                    assert fake_client.chat.completions.create.call_count == 1
 
     def test_auth_error_not_retried(self):
         fake_client = MagicMock()

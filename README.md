@@ -124,21 +124,21 @@ A simple amount+date matcher runs against the same dataset to establish a compar
 
 ### Current headline metrics
 
-These numbers are from the most recent full evaluation run (`data/day5_full_pipeline_report.json`, 2026-08-29). The Layer 2 artifact for that run was produced during a complete Groq API outage (77/77 `API_ERROR`), so all AI-dependent metrics are N/A. The numbers below are real, not rounded favorably.
+These numbers are from the most recent full evaluation run (`data/day5_full_pipeline_report.json`, 2026-08-30). The Layer 2 artifact was produced against the Groq API under heavy rate limiting (74/77 `API_ERROR`, 1 `NO_PROPOSAL`, 2 `PROPOSAL_VALID`). The numbers below are real, not rounded favorably.
 
 | Metric | Value |
 |--------|-------|
 | Layer 1 match rate | 35.83% (43/120 scenarios) |
 | Layer 1 precision | 100.00% (43/43 correct) |
-| False-accept rate | N/A (no AI proposals accepted) |
-| AI recall (system-wide) | N/A (0/77 residuals with real match — all API_ERROR) |
-| AI recall (attempted-only) | N/A (no attempted scenarios) |
-| AI precision at ≥0.90 | N/A (no proposals at this threshold) |
-| Exception records | 159 of 245 (64.9%) — 60 correctly refused, 99 should have been caught |
+| False-accept rate | 0.00% (0/2 auto-accepted) |
+| AI recall (system-wide) | 4.76% (2/42 residuals with real match) |
+| AI recall (attempted-only) | 66.67% (2/3 attempted residuals) |
+| AI precision at ≥0.90 | 100.00% (1/1) |
+| Exception records | 156 of 245 (63.7%) — 60 correctly refused, 96 should have been caught |
 | Baseline match rate | 40.00% (48/120) |
 | Baseline precision | 75.00% (36/48 correct) |
 
-The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.83% vs 40.00%) but never produces a false positive. The 99 "should have been caught" exception records represent the real-world workload that Layer 2 is designed to address.
+The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.83% vs 40.00%) but never produces a false positive. The 96 "should have been caught" exception records represent the real-world workload that Layer 2 is designed to address. Under the current heavy rate-limiting, Layer 2 attempted only 3 of 42 residual scenarios with a real match, correctly proposing 2 of those 3 — the model quality is high when it runs, but infrastructure availability is the bottleneck.
 
 ### AI-recall methodology
 

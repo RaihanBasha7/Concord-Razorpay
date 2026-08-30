@@ -30,7 +30,7 @@ import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from reconciliation.proposal import MatchProposal
 
@@ -70,6 +70,12 @@ class Auditor:
     * ``expected_record_count`` (optional): when set, ``finalize()`` validates
       that exactly this many records were written and raises ``ValueError``
       on mismatch, preventing partial artifacts from being treated as complete.
+    * ``resume=True``: when combined with ``atomic_write``, an existing
+      ``.tmp`` sidecar is preserved instead of truncated.  Valid records are
+      counted and ``write_count`` starts from that number so that
+      ``finalize()`` validates the combined total.  Corrupt or partial lines
+      (from a hard kill mid-write) are silently skipped.  The caller should
+      use ``resume_count`` to determine how many scenarios to skip.
     """
 
     def __init__(
@@ -79,12 +85,14 @@ class Auditor:
         archive_existing: bool = False,
         atomic_write: bool = False,
         expected_record_count: Optional[int] = None,
+        resume: bool = False,
     ) -> None:
         self._path = Path(path) if path is not None else None
         self._archive_existing = archive_existing
         self._atomic_write = atomic_write
         self._expected_record_count = expected_record_count
         self._write_count = 0
+        self._resume_count = 0  # records recovered from prior sidecar
         self._finalized = False
         self._active_path: Optional[Path] = None
         # Record whether a previous artifact existed before this run,
@@ -96,13 +104,52 @@ class Auditor:
 
         if self._path is not None and self._atomic_write:
             self._active_path = Path(str(self._path) + ".tmp")
-            # Start fresh for atomic write — truncate any leftover sidecar.
-            try:
-                self._active_path.write_text("", encoding="utf-8")
-            except OSError:
-                pass
+            if (
+                resume
+                and self._active_path.exists()
+                and self._active_path.stat().st_size > 0
+            ):
+                # Count valid records already in the sidecar so we can
+                # resume without re-calling the API for scenarios that
+                # already succeeded.  Corrupt/partial lines from a hard
+                # kill are silently skipped.
+                self._resume_count = self._count_valid_records(
+                    self._active_path
+                )
+                self._write_count = self._resume_count
+                # Do NOT truncate — open for append.
+            else:
+                # Start fresh for atomic write — truncate any leftover sidecar.
+                try:
+                    self._active_path.write_text("", encoding="utf-8")
+                except OSError:
+                    pass
         else:
             self._active_path = self._path
+
+    @staticmethod
+    def _count_valid_records(path: Path) -> int:
+        """Count complete, parseable JSON records in a JSONL file.
+
+        Corrupt or partial lines (e.g. from a hard kill mid-write) are
+        silently skipped so that a resume only replays genuinely completed
+        scenarios.
+        """
+        count = 0
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        json.loads(line)
+                    except (json.JSONDecodeError, ValueError):
+                        continue
+                    count += 1
+        except OSError:
+            pass
+        return count
 
     def _archive_existing_artifact(self) -> None:
         """Rename an existing artifact to a timestamped backup."""
@@ -155,6 +202,15 @@ class Auditor:
                     self._active_path.unlink(missing_ok=True)
                 except OSError:
                     pass
+                if self._resume_count:
+                    raise ValueError(
+                        f"Audit artifact record count mismatch: "
+                        f"expected {self._expected_record_count}, "
+                        f"wrote {self._write_count} "
+                        f"({self._resume_count} recovered + "
+                        f"{self._write_count - self._resume_count} new). "
+                        f"Incomplete artifact removed."
+                    )
                 raise ValueError(
                     f"Audit artifact record count mismatch: "
                     f"expected {self._expected_record_count}, "
@@ -191,6 +247,11 @@ class Auditor:
     @property
     def write_count(self) -> int:
         return self._write_count
+
+    @property
+    def resume_count(self) -> int:
+        """Number of valid records recovered from an existing sidecar on resume."""
+        return self._resume_count
 
 
 def make_audit_record(

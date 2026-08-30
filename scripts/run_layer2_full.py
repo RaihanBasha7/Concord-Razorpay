@@ -15,6 +15,7 @@ dataset fingerprint.  The artifact lifecycle:
 Usage:
     python scripts/run_layer2_full.py
     python scripts/run_layer2_full.py --delay 5.0
+    python scripts/run_layer2_full.py --resume
     LAYER2_DELAY_SECONDS=4.0 python scripts/run_layer2_full.py
 """
 from __future__ import annotations
@@ -219,10 +220,22 @@ def main() -> int:
         default=6.0,
         help="Base seconds for exponential backoff on rate-limit retries (default: 6.0).",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        default=False,
+        help=(
+            "Resume from an interrupted run.  If a .tmp sidecar exists with"
+            " already-completed scenarios, skips those and continues from"
+            " where the last run left off.  Without this flag, any existing"
+            " sidecar is discarded and the run starts from scratch."
+        ),
+    )
     args = parser.parse_args()
 
     data_dir = Path("data")
     artifact_path = data_dir / "layer2_full_audit.jsonl"
+    sidecar_path = Path(str(artifact_path) + ".tmp")
 
     # ── 1. Verify frozen dataset ──────────────────────────────────────
     print("=" * 60)
@@ -257,9 +270,68 @@ def main() -> int:
     expected_count = len(residuals)
     print(f"\nExpected residual scenarios: {expected_count}")
 
-    # ── 4. Run Layer 2 against ALL residuals ──────────────────────────
+    # ── 4. Detect incomplete sidecar from prior run ──────────────────
+    do_resume = args.resume
+    completed_count = 0
+
+    if sidecar_path.exists() and sidecar_path.stat().st_size > 0:
+        completed_count = Auditor._count_valid_records(sidecar_path)
+        if completed_count > 0:
+            if not do_resume:
+                print(
+                    f"\nWARNING: Found incomplete sidecar with "
+                    f"{completed_count} completed scenarios from a prior run."
+                )
+                print(
+                    "  Use --resume to continue from where it left off,"
+                    " or the sidecar will be discarded."
+                )
+            else:
+                print(
+                    f"\nResuming from prior run: {completed_count}/"
+                    f"{expected_count} scenarios already completed."
+                )
+        else:
+            # Sidecar exists but has no valid records (only corrupt data)
+            if do_resume:
+                print(
+                    "\nWARNING: --resume was passed but the existing sidecar"
+                    " contains no valid records. Starting fresh."
+                )
+            completed_count = 0
+            do_resume = False
+    else:
+        if do_resume:
+            print(
+                "\nWARNING: --resume was passed but no incomplete sidecar"
+                " exists. Starting fresh."
+            )
+            do_resume = False
+
+    remaining_count = expected_count - completed_count
+
+    if do_resume and remaining_count == 0:
+        print("\nAll scenarios already completed. Nothing to do.")
+        print("Re-running validation against the existing sidecar...")
+        # The sidecar is already complete — validate and promote it.
+        auditor = Auditor(
+            artifact_path,
+            archive_existing=True,
+            atomic_write=True,
+            expected_record_count=expected_count,
+            resume=True,
+        )
+        try:
+            auditor.finalize()
+        except ValueError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print("Sidecar validated and promoted successfully.")
+        return 0
+
+    # ── 5. Run Layer 2 against remaining residuals ────────────────────
     print(f"\n{'=' * 60}")
-    print(f"Processing {expected_count} scenarios...")
+    print(f"Processing {remaining_count} scenarios" + (f" (offset {completed_count})" if do_resume else "") + "...")
     print(f"  Inter-call delay: {args.delay:.1f}s")
     print(f"  Rate-limit retries: {args.max_retries} (backoff base: {args.backoff_base:.0f}s)")
     print(f"{'=' * 60}\n")
@@ -269,7 +341,16 @@ def main() -> int:
         archive_existing=True,
         atomic_write=True,
         expected_record_count=expected_count,
+        resume=do_resume,
     )
+    if do_resume and auditor.resume_count != completed_count:
+        print(
+            f"WARNING: Sidecar record count changed between detection"
+            f" ({completed_count}) and Auditor init"
+            f" ({auditor.resume_count})."
+        )
+        remaining_count = expected_count - auditor.resume_count
+
     service = ProposalService(provider)
     base_orchestrator = ProposalOrchestrator(service)
 
@@ -283,22 +364,23 @@ def main() -> int:
     runner = Day4Runner(
         data_dir=data_dir,
         orchestrator=orchestrator,
-        limit=expected_count,  # Process ALL residuals
+        limit=remaining_count,
         auditor=auditor,
         retrieval_config=RetrievalConfig(),
+        start_offset=auditor.resume_count,
     )
 
     summary = runner.run()
     runner.print_summary(summary)
 
-    # ── 4b. Finalize artifact (atomic promote) ────────────────────────
+    # ── 5b. Finalize artifact (atomic promote) ──────────────────────
     try:
         auditor.finalize()
     except ValueError as exc:
         print(f"ERROR: {exc}")
         return 1
 
-    # ── 5. Validate the artifact ──────────────────────────────────────
+    # ── 6. Validate the artifact ─────────────────────────────────────
     print(f"\n{'=' * 60}")
     print("Artifact Validation")
     print(f"{'=' * 60}\n")
@@ -362,7 +444,7 @@ def main() -> int:
     else:
         print("\nAll records have required fields.")
 
-    # ── 6. Summary ────────────────────────────────────────────────────
+    # ── 7. Summary ──────────────────────────────────────────────────
     print(f"\n{'=' * 60}")
     print("Final Summary")
     print(f"{'=' * 60}")

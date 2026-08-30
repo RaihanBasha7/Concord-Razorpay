@@ -56,6 +56,8 @@ _PERMANENT_ERROR_TYPES = frozenset(
     }
 )
 
+_RATE_LIMIT_ERROR_TYPES = frozenset({"rate_limit_error"})
+
 
 def _classify_api_error(exc: APIError) -> str:
     """Classify a Groq APIError as transient, permanent, or unknown.
@@ -72,6 +74,19 @@ def _classify_api_error(exc: APIError) -> str:
         if error_type in _PERMANENT_ERROR_TYPES:
             return "permanent"
     return "unknown"
+
+
+def _is_rate_limit_api_error(exc: APIError) -> bool:
+    """Return True if the API error is a rate-limit error.
+
+    Rate-limit errors are retried at the orchestrator level (with proper
+    backoff), not at the provider level, to avoid stacking retries.
+    """
+    body = getattr(exc, "body", None) or {}
+    error_info = body.get("error") if isinstance(body, dict) else None
+    if isinstance(error_info, dict):
+        return error_info.get("type", "") in _RATE_LIMIT_ERROR_TYPES
+    return False
 
 
 def _is_transient_api_error(exc: APIError) -> bool:
@@ -234,7 +249,11 @@ class GroqStructuredProvider(StructuredCompletionProvider):
                     safe_detail=str(exc),
                 ) from exc
             except APIError as exc:
-                if _is_transient_api_error(exc) and attempt == 0:
+                if (
+                    _is_transient_api_error(exc)
+                    and not _is_rate_limit_api_error(exc)
+                    and attempt == 0
+                ):
                     _sleep(2.0)
                     continue
                 classification = _classify_api_error(exc)

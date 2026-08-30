@@ -36,3 +36,5 @@ dmypy.json
 *.db
 
 data/layer2_evaluation_report.json
+
+data/layer2_full_run.log

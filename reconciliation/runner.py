@@ -75,14 +75,18 @@ class Day4Runner:
         limit: int = DEFAULT_SAMPLE_LIMIT,
         auditor: Optional[Auditor] = None,
         retrieval_config: Optional[RetrievalConfig] = None,
+        start_offset: int = 0,
     ) -> None:
         if limit < 1:
             raise ValueError("limit must be at least 1.")
+        if start_offset < 0:
+            raise ValueError("start_offset must be non-negative.")
         self._data_dir = Path(data_dir)
         self._orchestrator = orchestrator
         self._limit = limit
         self._auditor = auditor
         self._retrieval_config = retrieval_config or RetrievalConfig()
+        self._start_offset = start_offset
         self._audit_failures = 0
         self._dataset_fingerprint, self._fingerprint_diagnostics = (
             self._resolve_dataset_fingerprint()
@@ -120,7 +124,10 @@ class Day4Runner:
 
     def run(self) -> RunSummary:
         normalized = load_normalized_records(self._data_dir)
-        residuals = load_residuals(self._data_dir)[: self._limit]
+        all_residuals = load_residuals(self._data_dir)
+        residuals = all_residuals[
+            self._start_offset : self._start_offset + self._limit
+        ]
 
         by_outcome: Dict[str, int] = {}
         diagnostics: List[str] = []

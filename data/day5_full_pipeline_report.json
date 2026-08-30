@@ -3,9 +3,9 @@
     "dataset_seed": 42,
     "total_scenarios": 120,
     "total_records": 245,
-    "run_timestamp": "2026-08-29T23:43:16.768220",
+    "run_timestamp": "2026-08-30T16:56:59.965778",
     "layer2_mode": "artifact-backed",
-    "layer2_provenance": "Real Layer 2 artifacts from layer2_full_audit.jsonl. Dataset fingerprint 8dca28fe7e5c\u2026 verified; 77 of 77 residual scenarios have Layer 2 artifacts (77 API_ERROR); record-id coverage 100%; 77 artifact(s) provenance-verified (fingerprint-matched), 0 legacy artifact(s) provenance-unverified (record-id compatibility checked only).",
+    "layer2_provenance": "Real Layer 2 artifacts from layer2_full_audit.jsonl. Dataset fingerprint 8dca28fe7e5c\u2026 verified; 77 of 77 residual scenarios have Layer 2 artifacts (74 API_ERROR); record-id coverage 100%; 77 artifact(s) provenance-verified (fingerprint-matched), 0 legacy artifact(s) provenance-unverified (record-id compatibility checked only).",
     "auto_accept_threshold": 0.9,
     "review_threshold": 0.6,
     "baseline_config": {
@@ -15,9 +15,9 @@
     "dataset_fingerprint": "8dca28fe7e5c50655b8d0cfbf3bfe858c17f52af82d44dc70a6520eec6fa5e6d"
   },
   "throughput": {
-    "total_batch_time_ms": 116.96360352652846,
-    "layer1_time_ms": 1.1325000014039688,
-    "layer2_time_ms": 115.83110352512449
+    "total_batch_time_ms": 31.66980206151493,
+    "layer1_time_ms": 1.0853999992832541,
+    "layer2_time_ms": 30.584402062231675
   },
   "deterministic_match_rate": {
     "total_scenarios": 120,
@@ -29,43 +29,46 @@
   "ai_precision_at_thresholds": {
     "confidence_>=_0.90": {
       "threshold": 0.9,
-      "precision": null,
-      "true_positives": 0,
+      "precision": 1.0,
+      "true_positives": 1,
       "false_positives": 0,
-      "total": 0
+      "total": 1
     },
     "confidence_>=_0.75": {
       "threshold": 0.75,
-      "precision": null,
-      "true_positives": 0,
+      "precision": 1.0,
+      "true_positives": 2,
       "false_positives": 0,
-      "total": 0
+      "total": 2
     },
     "confidence_>=_0.60": {
       "threshold": 0.6,
-      "precision": null,
-      "true_positives": 0,
+      "precision": 1.0,
+      "true_positives": 2,
       "false_positives": 0,
-      "total": 0
+      "total": 2
     }
   },
   "ai_recall": {
-    "recall": null,
-    "true_positives": 0,
-    "denominator": 0
+    "recall": 0.047619047619047616,
+    "true_positives": 2,
+    "denominator": 42,
+    "recall_attempted": 0.6666666666666666,
+    "denominator_attempted": 3,
+    "note": "'recall' is system-wide (all residuals with real match). 'recall_attempted' excludes API_ERROR provider failures (only scenarios where Layer 2 actually ran)."
   },
   "false_accept_rate": {
-    "rate": null,
+    "rate": 0.0,
     "count": 0,
-    "total_auto_accepted": 0
+    "total_auto_accepted": 2
   },
   "review_queue_composition": {
-    "total": 0,
-    "percentage_of_batch": 0.0,
+    "total": 1,
+    "percentage_of_batch": 0.40816326530612246,
     "counts_by_category": {
       "EXACT_MATCH": 0,
       "T_PLUS_DELAY": 0,
-      "FEE_DEDUCTED": 0,
+      "FEE_DEDUCTED": 1,
       "PARTIAL_REFUND": 0,
       "SPLIT_SETTLEMENT": 0,
       "ROUNDING_DIFFERENCE": 0,
@@ -75,26 +78,26 @@
       "LATE_ARRIVING": 0
     },
     "percentages_by_category": {
-      "EXACT_MATCH": null,
-      "T_PLUS_DELAY": null,
-      "FEE_DEDUCTED": null,
-      "PARTIAL_REFUND": null,
-      "SPLIT_SETTLEMENT": null,
-      "ROUNDING_DIFFERENCE": null,
-      "INCONSISTENT_NARRATION": null,
-      "DUPLICATE": null,
-      "TRUE_ORPHAN": null,
-      "LATE_ARRIVING": null
+      "EXACT_MATCH": 0.0,
+      "T_PLUS_DELAY": 0.0,
+      "FEE_DEDUCTED": 100.0,
+      "PARTIAL_REFUND": 0.0,
+      "SPLIT_SETTLEMENT": 0.0,
+      "ROUNDING_DIFFERENCE": 0.0,
+      "INCONSISTENT_NARRATION": 0.0,
+      "DUPLICATE": 0.0,
+      "TRUE_ORPHAN": 0.0,
+      "LATE_ARRIVING": 0.0
     },
     "denominator_note": "Percentages are over total HUMAN_REVIEW records, not total batch."
   },
   "exception_composition": {
-    "total": 159,
-    "percentage_of_batch": 64.89795918367346,
+    "total": 156,
+    "percentage_of_batch": 63.6734693877551,
     "correctly_refused": 60,
-    "correctly_refused_pct": 37.735849056603776,
-    "should_have_been_caught": 99,
-    "should_have_been_caught_pct": 62.264150943396224,
+    "correctly_refused_pct": 38.46153846153847,
+    "should_have_been_caught": 96,
+    "should_have_been_caught_pct": 61.53846153846154,
     "correctly_refused_note": "No real match exists in ground truth (has_real_match=False).",
     "should_have_been_caught_note": "Exception bucket on a scenario that has a real match."
   },
@@ -111,15 +114,15 @@
     "total_records": 245,
     "counts": {
       "DETERMINISTIC_MATCH": 86,
-      "AI_AUTO_ACCEPTED": 0,
-      "HUMAN_REVIEW": 0,
-      "EXCEPTION": 159
+      "AI_AUTO_ACCEPTED": 2,
+      "HUMAN_REVIEW": 1,
+      "EXCEPTION": 156
     },
     "rates": {
       "DETERMINISTIC_MATCH": 0.3510204081632653,
-      "AI_AUTO_ACCEPTED": 0.0,
-      "HUMAN_REVIEW": 0.0,
-      "EXCEPTION": 0.6489795918367347
+      "AI_AUTO_ACCEPTED": 0.00816326530612245,
+      "HUMAN_REVIEW": 0.004081632653061225,
+      "EXCEPTION": 0.636734693877551
     },
     "note": "Final system routing composition at the record level. DETERMINISTIC_MATCH = Layer 1 exact/amount-date match. AI_AUTO_ACCEPTED = Layer 2 proposal accepted automatically. HUMAN_REVIEW = Layer 2 proposal needs human review. EXCEPTION = no valid Layer 2 outcome or low confidence."
   },
@@ -134,11 +137,14 @@
         "baseline_correct": false,
         "deterministic_matched": false,
         "deterministic_correct": true,
-        "routing_bucket": "EXCEPTION",
-        "ai_confidence": null,
-        "ai_proposal_ids": [],
-        "ai_correct": null,
-        "layer2_outcome_type": "API_ERROR"
+        "routing_bucket": "HUMAN_REVIEW",
+        "ai_confidence": 0.8,
+        "ai_proposal_ids": [
+          "SETTLEMENT-f08ea071ad43",
+          "BANK-1eac3dc8e405"
+        ],
+        "ai_correct": true,
+        "layer2_outcome_type": "PROPOSAL_VALID"
       },
       {
         "scenario_id": "DUP-002",
@@ -509,11 +515,15 @@
         "baseline_correct": false,
         "deterministic_matched": false,
         "deterministic_correct": true,
-        "routing_bucket": "EXCEPTION",
-        "ai_confidence": null,
-        "ai_proposal_ids": [],
-        "ai_correct": null,
-        "layer2_outcome_type": "API_ERROR"
+        "routing_bucket": "AI_AUTO_ACCEPTED",
+        "ai_confidence": 0.9,
+        "ai_proposal_ids": [
+          "SETTLEMENT-bc9ab3cb7d1f",
+          "BANK-49d1f3f2ce48",
+          "BANK-7813e4532060"
+        ],
+        "ai_correct": true,
+        "layer2_outcome_type": "PROPOSAL_VALID"
       },
       {
         "scenario_id": "EXACT-012",
@@ -1652,8 +1662,8 @@
         "routing_bucket": "EXCEPTION",
         "ai_confidence": null,
         "ai_proposal_ids": [],
-        "ai_correct": null,
-        "layer2_outcome_type": "API_ERROR"
+        "ai_correct": false,
+        "layer2_outcome_type": "NO_PROPOSAL"
       },
       {
         "scenario_id": "TDLY-014",
@@ -1931,11 +1941,11 @@
         "record_id": "SETTLEMENT-f08ea071ad43",
         "scenario_id": "FEE-012",
         "category": "FEE_DEDUCTED",
-        "routing_bucket": "EXCEPTION",
-        "ai_confidence": null,
+        "routing_bucket": "HUMAN_REVIEW",
+        "ai_confidence": 0.8,
         "is_false_accept": false,
         "exception_correctly_refused": false,
-        "exception_should_have_been_caught": true
+        "exception_should_have_been_caught": false
       },
       {
         "record_id": "BANK-1eac3dc8e405",
@@ -2451,21 +2461,21 @@
         "record_id": "SETTLEMENT-bc9ab3cb7d1f",
         "scenario_id": "SPLT-009",
         "category": "SPLIT_SETTLEMENT",
-        "routing_bucket": "EXCEPTION",
-        "ai_confidence": null,
+        "routing_bucket": "AI_AUTO_ACCEPTED",
+        "ai_confidence": 0.9,
         "is_false_accept": false,
         "exception_correctly_refused": false,
-        "exception_should_have_been_caught": true
+        "exception_should_have_been_caught": false
       },
       {
         "record_id": "BANK-49d1f3f2ce48",
         "scenario_id": "SPLT-009",
         "category": "SPLIT_SETTLEMENT",
-        "routing_bucket": "EXCEPTION",
-        "ai_confidence": null,
+        "routing_bucket": "AI_AUTO_ACCEPTED",
+        "ai_confidence": 0.9,
         "is_false_accept": false,
         "exception_correctly_refused": false,
-        "exception_should_have_been_caught": true
+        "exception_should_have_been_caught": false
       },
       {
         "record_id": "BANK-7813e4532060",
