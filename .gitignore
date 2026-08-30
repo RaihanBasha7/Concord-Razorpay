@@ -29,6 +29,8 @@ dmypy.json
 
 .tmp_test_day3/
 
-.tmp_test_day3/
+.freebuff/
+
+*.db
 
 data/layer2_evaluation_report.json

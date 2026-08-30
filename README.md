@@ -102,3 +102,114 @@ The repository includes unit tests, invariant tests, and acceptance tests coveri
 - Amount + date window matching with tolerance
 - Core reconciliation invariants (no duplicates, no silent drops, permutation invariance)
 - Nine documented acceptance scenarios from `docs/reconciliation_scenarios.md`
+
+## Day 5 — Evaluation & Guardrails
+
+Concord evaluates the full pipeline against a synthetic dataset of 120 scenarios (245 records) with controlled category quotas: exact-id matches, amount-date matches, duplicates, fee deductions, partial refunds, split settlements, rounding differences, inconsistent narrations, true orphans, and late-arriving records. The dataset is frozen on disk with a SHA-256 fingerprint; every evaluation run verifies the on-disk files match the frozen manifest before computing metrics.
+
+### Layer 3 routing buckets
+
+Every record is assigned exactly one of four routing decisions:
+
+| Bucket | Meaning |
+|--------|---------|
+| `DETERMINISTIC_MATCH` | Layer 1 matched this record via exact ID or amount+date rules |
+| `AI_AUTO_ACCEPTED` | Layer 2 proposed a match with confidence ≥ 0.90; auto-accepted |
+| `HUMAN_REVIEW` | Layer 2 proposed a match with confidence 0.60–0.89; queued for human review |
+| `EXCEPTION` | No valid Layer 2 outcome, low confidence, or provider failure |
+
+### Naive baseline
+
+A simple amount+date matcher runs against the same dataset to establish a comparison baseline. It uses the same tolerance (100 paise, 2-day window) but no ambiguity protection — it accepts the first candidate it finds. This deliberately under-specifies the matching logic so Layer 1's deterministic precision can be measured against a minimal straw man, not against a competitor.
+
+### Current headline metrics
+
+These numbers are from the most recent full evaluation run (`data/day5_full_pipeline_report.json`, 2026-08-29). The Layer 2 artifact for that run was produced during a complete Groq API outage (77/77 `API_ERROR`), so all AI-dependent metrics are N/A. The numbers below are real, not rounded favorably.
+
+| Metric | Value |
+|--------|-------|
+| Layer 1 match rate | 35.83% (43/120 scenarios) |
+| Layer 1 precision | 100.00% (43/43 correct) |
+| False-accept rate | N/A (no AI proposals accepted) |
+| AI recall (system-wide) | N/A (0/77 residuals with real match — all API_ERROR) |
+| AI recall (attempted-only) | N/A (no attempted scenarios) |
+| AI precision at ≥0.90 | N/A (no proposals at this threshold) |
+| Exception records | 159 of 245 (64.9%) — 60 correctly refused, 99 should have been caught |
+| Baseline match rate | 40.00% (48/120) |
+| Baseline precision | 75.00% (36/48 correct) |
+
+The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.83% vs 40.00%) but never produces a false positive. The 99 "should have been caught" exception records represent the real-world workload that Layer 2 is designed to address.
+
+### AI-recall methodology
+
+AI recall is reported as two numbers — **system-wide** and **attempted-only** — because in a financial reconciliation system "we didn't try" and "we tried and got it wrong" are different failure modes with different fixes. System-wide recall counts every residual scenario with a real match in the denominator, including provider failures (`API_ERROR`); under a total Layer 2 outage it reports 0%, not N/A, so the operational safety metric never goes silent during the worst case. Attempted-only recall excludes provider failures and measures model quality when Layer 2 actually ran. Both numbers appear in every evaluation report. A system-wide recall of 0% with an attempted-only recall of 80% would tell you the model is decent but the infrastructure is down; a system-wide recall of 80% with an attempted-only recall of 80% would tell you the model runs reliably. Neither number alone tells the full story.
+
+### DUPLICATE scenario scoring
+
+DUPLICATE scenarios contain two same-source settlement records (e.g. duplicate settlement reports). Layer 2 proposing that these two records match each other is currently scored as a correct outcome. This is distinct from cross-source reconciliation (e.g. settlement-to-bank matching). The expected match IDs for DUPLICATE scenarios are the settlement-only records, not all member records. This behavior is intentional for the current evaluation — it treats duplicate detection as a valid Layer 2 capability alongside cross-source matching. Whether this should remain scored as correct or be separated into its own metric is a known open question.
+
+## Day 6 — API
+
+The HTTP API exposes five batch endpoints and a liveness probe:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/batches` | Accept three CSV files (settlement, bank, ledger), run the full pipeline, return a batch ID |
+| `GET` | `/batches/{batch_id}/status` | Processing state, record count, routing composition, Layer 2 mode |
+| `GET` | `/batches/{batch_id}/results` | Routing decisions, optionally filtered by bucket (`?bucket=EXCEPTION`) |
+| `GET` | `/batches/{batch_id}/eval` | Evaluation report computed for this batch |
+| `GET` | `/batches/{batch_id}/records/{record_id}` | Full decision context for one record (source data, Layer 1/Layer 2 info, audit trail) |
+| `GET` | `/health` | Liveness probe (returns 200 when the process is alive) |
+
+### Layer 2 / API gap
+
+The API does not execute Layer 2 from arbitrary uploaded batches. Layer 2 is evaluated against the synthetic residual set using a frozen dataset with provenance-verified artifacts, but it is not safely wired to arbitrary uploaded CSVs. The reason is a scenario-disjointness issue found during development: the evaluation harness assumes each residual scenario is independent and processes them in isolation, but arbitrary uploaded batches may contain inter-record relationships that the current retrieval and proposal logic does not model. Wiring Layer 2 to arbitrary uploads without addressing this would produce proposals against an incomplete understanding of the record universe. The API records `layer2_mode: not_executed` in all batch responses so consumers never mistake it for real AI processing.
+
+## Persistence & Deployment
+
+### Why SQLite
+
+Concord uses SQLite for batch persistence. This is a deliberate engineering choice for the current project stage:
+
+- **Zero operational overhead.** No database server to install, configure, or monitor. The persistence layer is a single file (`data/concord.db`, gitignored).
+- **Right-sized for single-instance use.** Local development, hackathon demos, and evaluation pipelines run one API process. SQLite handles this workload without unnecessary infrastructure.
+- **Clean interface.** `BatchStore` encapsulates all persistence behind a narrow API. Swapping the backing database later is a localized change, not a rewrite.
+
+### Current Limitations
+
+These are real constraints of the current implementation, not hypothetical concerns:
+
+**Single-writer concurrency.** SQLite serializes writes at the file level. `BatchStore` holds one connection and commits after every write operation. Concurrent batch submissions are safe but serialize on the write lock — they will not run in parallel.
+
+**Single-instance only.** The database is a local file. The current implementation is not designed or validated for multi-instance deployment — concurrent access from multiple processes is not tested, and the lack of WAL mode or retry logic means write contention under concurrent load is unhandled.
+
+**No WAL mode.** The default journal mode is used. WAL would improve concurrent read throughput and is a straightforward future optimization, but is not configured today.
+
+**One connection, no pooling.** `BatchStore` creates a single `sqlite3.connect()` at startup with `check_same_thread=False`. There is no connection pool, no automatic reconnection, and no retry logic. If the connection drops, requests fail until the process restarts.
+
+**No automated backups.** The `.db` file is the only durability mechanism. `BatchStore` commits every write immediately, so committed data persists reliably under normal operation — but there is no backup or recovery strategy. If the file is deleted, corrupted, or the disk fails, data is unrecoverable. For hackathon and demo use this is acceptable; for workflows with durability requirements, periodic snapshots or a migration to a server-backed database is needed.
+
+**No migration framework.** Schema is created via `CREATE TABLE IF NOT EXISTS` at startup. Adding columns or tables in future versions will require manual migration scripts or a tool like Alembic.
+
+### Production Scaling Path
+
+When Concord needs concurrent users, multi-instance deployment, or stronger durability, the following changes would close the gap — none require architectural redesign:
+
+1. **Swap SQLite for a client-server database** (e.g., PostgreSQL). This resolves single-instance, concurrency, and durability limitations in one step.
+2. **Add connection pooling.** Replace the single-connection `BatchStore` with a pooled connection manager.
+3. **Introduce a migration framework** (e.g., Alembic) to manage schema changes across environments.
+4. **Add a `/ready` endpoint** that verifies database connectivity, complementing the existing `/health` liveness probe.
+5. **Containerize.** A Dockerfile and orchestration config for consistent deployment.
+
+The `BatchStore` interface is intentionally narrow — these changes are engineering work, not a rethink.
+
+### Deployment Status
+
+| Capability | Status |
+|-----------|--------|
+| Local development | Fully supported |
+| Single-instance deployment | Fully supported |
+| Concurrent batch submissions | Safe, serialized |
+| Multi-instance deployment | Not supported |
+| Database backups | Manual |
+| Schema migrations | Not supported |

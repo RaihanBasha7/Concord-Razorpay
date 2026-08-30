@@ -19,6 +19,7 @@ from reconciliation.evaluation.dataset_generator import (
     _compute_record_id,
     generate_dataset,
 )
+from reconciliation.domain.models import SourceType
 from reconciliation.evaluation.layer2_harness import (
     Layer2EvaluationReport,
     run_layer2_evaluation,
@@ -77,13 +78,23 @@ def main() -> None:
         is_orphan = scen.category == EdgeCaseCategory.TRUE_ORPHAN
         is_no_match = scen.expected_outcome == ExpectedLayer1Outcome.NO_MATCH
 
+        if scen.category == EdgeCaseCategory.DUPLICATE:
+            duplicate_ids = tuple(
+                _compute_record_id(spec)
+                for spec in scen.record_specs
+                if spec.source_type == SourceType.SETTLEMENT
+            )
+            proposal_ids = list(duplicate_ids)
+        else:
+            proposal_ids = list(member_ids)
+
         if is_orphan or is_no_match:
             if false_accept_count < false_accept_target:
                 false_accept_count += 1
                 outcomes[scen.scenario_id] = ProposalOutcome(
                     outcome=ProposalOutcomeType.PROPOSAL_VALID,
                     proposal=MatchProposal(
-                        proposed_match_ids=list(member_ids),
+                        proposed_match_ids=proposal_ids,
                         confidence=0.95,
                         rationale="overconfident",
                     ),
@@ -95,7 +106,7 @@ def main() -> None:
                 outcomes[scen.scenario_id] = ProposalOutcome(
                     outcome=ProposalOutcomeType.PROPOSAL_VALID,
                     proposal=MatchProposal(
-                        proposed_match_ids=list(member_ids),
+                        proposed_match_ids=proposal_ids,
                         confidence=0.75,
                         rationale="low confidence",
                     ),
@@ -115,7 +126,7 @@ def main() -> None:
             outcomes[scen.scenario_id] = ProposalOutcome(
                 outcome=ProposalOutcomeType.PROPOSAL_VALID,
                 proposal=MatchProposal(
-                    proposed_match_ids=list(member_ids),
+                    proposed_match_ids=proposal_ids,
                     confidence=confidence,
                     rationale="correct",
                 ),

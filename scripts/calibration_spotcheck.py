@@ -50,7 +50,6 @@ from reconciliation.proposal_orchestration import ProposalOrchestrator, Proposal
 from reconciliation.proposal_validation import ProposalOutcomeType
 from reconciliation.proposal_service import ProposalService
 from reconciliation.retrieval import RetrievalConfig, RetrievalResult, retrieve_candidates
-from reconciliation.routing import RoutingDecision, route
 
 
 REPORT_LABEL = "SPOT-CHECK / SANITY CHECK — NOT A FULL CALIBRATION STUDY"
