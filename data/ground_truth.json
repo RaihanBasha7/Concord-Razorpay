@@ -37,6 +37,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -72,6 +73,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
     },
     {
@@ -89,6 +91,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -124,6 +127,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
     },
     {
@@ -150,6 +154,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -176,6 +181,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -202,6 +208,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -237,6 +244,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -263,6 +271,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -289,6 +298,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -315,6 +325,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; no counterpart to match."
     },
     {
@@ -341,6 +352,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -367,6 +379,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Amounts differ by more than tolerance; should not match."
     },
     {
@@ -384,6 +397,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -410,6 +424,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -436,6 +451,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -462,6 +478,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -479,6 +496,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -505,6 +523,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -531,6 +550,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -548,6 +568,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -574,6 +595,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -609,6 +631,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
     },
     {
@@ -644,6 +667,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -679,6 +703,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -714,6 +739,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -740,6 +766,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -775,6 +802,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -801,6 +829,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -827,6 +856,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; no counterpart to match."
     },
     {
@@ -853,6 +883,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -879,6 +910,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -905,6 +937,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -931,6 +964,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -957,6 +991,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -983,6 +1018,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -1000,6 +1036,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -1026,6 +1063,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -1052,6 +1090,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -1078,6 +1117,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -1104,6 +1144,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Amounts differ by more than tolerance; should not match."
     },
     {
@@ -1139,6 +1180,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
     },
     {
@@ -1165,6 +1207,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1191,6 +1234,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1226,6 +1270,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -1252,6 +1297,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -1278,6 +1324,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -1304,6 +1351,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -1330,6 +1378,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1356,6 +1405,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1382,6 +1432,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -1417,6 +1468,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -1443,6 +1495,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1469,6 +1522,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1495,6 +1549,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1521,6 +1576,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -1547,6 +1603,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -1573,6 +1630,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; no counterpart to match."
     },
     {
@@ -1599,6 +1657,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1625,6 +1684,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Amounts differ by more than tolerance; should not match."
     },
     {
@@ -1651,6 +1711,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -1677,6 +1738,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1703,6 +1765,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1729,6 +1792,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -1755,6 +1819,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -1781,6 +1846,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -1807,6 +1873,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -1833,6 +1900,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -1859,6 +1927,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -1885,6 +1954,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; no counterpart to match."
     },
     {
@@ -1902,6 +1972,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -1937,6 +2008,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match."
     },
     {
@@ -1963,6 +2035,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -1989,6 +2062,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2015,6 +2089,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Duplicate settlement records share native ID; no counterpart to match."
     },
     {
@@ -2041,6 +2116,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -2067,6 +2143,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2093,6 +2170,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2119,6 +2197,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -2145,6 +2224,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2171,6 +2251,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2197,6 +2278,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -2223,6 +2305,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2249,6 +2332,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2275,6 +2359,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -2301,6 +2386,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2327,6 +2413,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -2344,6 +2431,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -2370,6 +2458,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -2396,6 +2485,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2431,6 +2521,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -2448,6 +2539,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -2474,6 +2566,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2500,6 +2593,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -2526,6 +2620,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -2543,6 +2638,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -2569,6 +2665,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -2586,6 +2683,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Single record with no counterpart in any other source."
     },
     {
@@ -2621,6 +2719,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -2647,6 +2746,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2673,6 +2773,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient."
     },
     {
@@ -2699,6 +2800,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -2725,6 +2827,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2751,6 +2854,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2777,6 +2881,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Records share an order identifier but settlement and bank dates differ by 1-2 days."
     },
     {
@@ -2812,6 +2917,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "One settlement is split across two bank credits; no individual pair matches exactly."
     },
     {
@@ -2838,6 +2944,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2864,6 +2971,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -2890,6 +2998,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -2916,6 +3025,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -2942,6 +3052,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     },
     {
@@ -2968,6 +3079,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching."
     },
     {
@@ -2994,6 +3106,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -3020,6 +3133,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Amounts differ by more than tolerance; should not match."
     },
     {
@@ -3046,6 +3160,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": true,
       "description": "Partial refund reduces bank amount below settlement amount; not a full reconciliation."
     },
     {
@@ -3072,6 +3187,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -3098,6 +3214,7 @@
         }
       ],
       "expected_outcome": "MATCH_AMOUNT_DATE",
+      "has_real_match": true,
       "description": "Amounts differ by a few paise within default tolerance; should match on amount+date."
     },
     {
@@ -3124,6 +3241,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Amounts differ by more than tolerance; should not match."
     },
     {
@@ -3150,6 +3268,7 @@
         }
       ],
       "expected_outcome": "MATCH_EXACT_ID",
+      "has_real_match": true,
       "description": "Two records share the same order identifier across different sources with identical amounts."
     },
     {
@@ -3176,6 +3295,7 @@
         }
       ],
       "expected_outcome": "NO_MATCH",
+      "has_real_match": false,
       "description": "Counterpart record arrives later than the configured date window; no deterministic match."
     }
   ]

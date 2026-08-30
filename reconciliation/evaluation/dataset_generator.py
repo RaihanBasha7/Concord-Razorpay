@@ -46,6 +46,7 @@ class GroundTruthScenario:
     category: EdgeCaseCategory
     record_specs: Tuple[ScenarioRecordSpec, ...]
     expected_outcome: ExpectedLayer1Outcome
+    has_real_match: bool
     description: str
 
 
@@ -306,6 +307,7 @@ def _build_exact_match(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, glob
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
+        has_real_match=True,
         description="Two records share the same order identifier across different sources with identical amounts.",
     )
 
@@ -327,6 +329,7 @@ def _build_t_plus_delay(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, glo
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
+        has_real_match=True,
         description="Records share an order identifier but settlement and bank dates differ by 1-2 days.",
     )
 
@@ -346,6 +349,7 @@ def _build_fee_deducted(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, glo
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=True,
         description="Settlement amount exceeds bank amount by a fixed fee; Layer 1 amount tolerance is insufficient.",
     )
 
@@ -365,6 +369,7 @@ def _build_partial_refund(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, g
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=True,
         description="Partial refund reduces bank amount below settlement amount; not a full reconciliation.",
     )
 
@@ -387,6 +392,7 @@ def _build_split_settlement(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int,
         category=cat,
         record_specs=(set_spec, bn1, bn2),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=True,
         description="One settlement is split across two bank credits; no individual pair matches exactly.",
     )
 
@@ -415,11 +421,13 @@ def _build_rounding_difference(
         bn_spec = _make_ledger_spec(
             rng, scen_id, 1, amount + diff, date_offset=rng.choice([0, 1]), order_id=f"ORD-{scen_id}-B"
         )
+    has_real_match = idx <= 8
     return GroundTruthScenario(
         scenario_id=scen_id,
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=expected,
+        has_real_match=has_real_match,
         description=desc,
     )
 
@@ -452,6 +460,7 @@ def _build_inconsistent_narration(
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=False,
         description="Narrations reference a common order but amounts and dates are too dissimilar for deterministic matching.",
     )
 
@@ -470,6 +479,7 @@ def _build_duplicate(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, global
             category=cat,
             record_specs=(set1, set2, bn),
             expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+            has_real_match=True,
             description="Duplicate settlement records share native ID; ambiguous exact identifier prevents automatic match.",
         )
     return GroundTruthScenario(
@@ -477,6 +487,7 @@ def _build_duplicate(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, global
         category=cat,
         record_specs=(set1, set2),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=True,
         description="Duplicate settlement records share native ID; no counterpart to match.",
     )
 
@@ -499,6 +510,7 @@ def _build_true_orphan(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, glob
         category=cat,
         record_specs=(rec,),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=False,
         description="Single record with no counterpart in any other source.",
     )
 
@@ -519,6 +531,7 @@ def _build_late_arriving(rng: _SeededRandom, cat: EdgeCaseCategory, idx: int, gl
         category=cat,
         record_specs=(set_spec, bn_spec),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+        has_real_match=False,
         description="Counterpart record arrives later than the configured date window; no deterministic match.",
     )
 
@@ -648,6 +661,7 @@ def _scenario_to_dict(scen: GroundTruthScenario) -> Dict[str, Any]:
             for rs in scen.record_specs
         ],
         "expected_outcome": scen.expected_outcome.value,
+        "has_real_match": scen.has_real_match,
         "description": scen.description,
     }
 

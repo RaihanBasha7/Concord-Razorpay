@@ -30,7 +30,7 @@ from reconciliation.matcher_config import MatcherConfig
 from reconciliation.proposal_orchestration import ProposalOutcome, ProposalOrchestrator
 from reconciliation.proposal_validation import ProposalOutcomeType
 from reconciliation.retrieval import RetrievalConfig, RetrievalResult, retrieve_candidates
-from reconciliation.routing import RoutingDecision, route
+from reconciliation.routing import ProposalVerdict, route
 
 
 @dataclass(frozen=True)
@@ -39,7 +39,7 @@ class Layer2RoutingEvaluation:
     category: EdgeCaseCategory
     is_true_orphan: bool
     layer1_expected: ExpectedLayer1Outcome
-    routing_decision: RoutingDecision
+    routing_decision: ProposalVerdict
     outcome_type: ProposalOutcomeType
     confidence: Optional[float]
     proposal_match_ids: Tuple[str, ...]
@@ -92,6 +92,19 @@ def _load_normalized_records(
     return records
 
 
+def _expected_match_ids(
+    scenario: GroundTruthScenario,
+    unit: GroundTruthUnit,
+) -> Tuple[str, ...]:
+    if scenario.category == EdgeCaseCategory.DUPLICATE:
+        return tuple(
+            _compute_record_id(spec)
+            for spec in scenario.record_specs
+            if spec.source_type == SourceType.SETTLEMENT
+        )
+    return unit.member_record_ids
+
+
 def _score_routing(
     eval: Layer2RoutingEvaluation,
     scenario: GroundTruthScenario,
@@ -99,31 +112,32 @@ def _score_routing(
 ) -> Layer2RoutingEvaluation:
     correct = False
     reason = None
+    expected_ids = _expected_match_ids(scenario, unit)
 
-    if eval.routing_decision == RoutingDecision.AUTO_ACCEPT:
+    if eval.routing_decision == ProposalVerdict.AUTO_ACCEPT:
         if unit.is_true_orphan:
             correct = False
             reason = "Auto-accepted a true orphan."
         else:
-            if eval.proposal_match_ids == unit.member_record_ids:
+            if eval.proposal_match_ids == expected_ids:
                 correct = True
             else:
                 correct = False
                 reason = (
                     f"Auto-accepted with wrong IDs: "
-                    f"{eval.proposal_match_ids} != {unit.member_record_ids}"
+                    f"{eval.proposal_match_ids} != {expected_ids}"
                 )
     else:
         if unit.is_true_orphan:
             correct = True
-        elif eval.routing_decision == RoutingDecision.NEEDS_REVIEW:
-            if eval.proposal_match_ids == unit.member_record_ids:
+        elif eval.routing_decision == ProposalVerdict.NEEDS_REVIEW:
+            if eval.proposal_match_ids == expected_ids:
                 correct = True
             else:
                 correct = False
                 reason = (
                     f"NEEDS_REVIEW with wrong IDs: "
-                    f"{eval.proposal_match_ids} != {unit.member_record_ids}"
+                    f"{eval.proposal_match_ids} != {expected_ids}"
                 )
         else:
             if eval.outcome_type == ProposalOutcomeType.VALIDATION_FAILED:
@@ -202,20 +216,47 @@ def run_layer2_evaluation(
     config: Optional[MatcherConfig] = None,
     retrieval_config: Optional[RetrievalConfig] = None,
 ) -> Layer2EvaluationReport:
+    from reconciliation.evaluation.dataset_fingerprint import read_manifest, verify_dataset, freeze_or_verify_dataset
     from reconciliation.evaluation.evaluation_harness import run_evaluation as run_l1_evaluation
 
     config = config or MatcherConfig(amount_tolerance_paise=100, date_window_days=2)
     retrieval_config = retrieval_config or RetrievalConfig()
 
-    write_dataset(dataset, output_dir)
-    l1_result = run_l1_evaluation(dataset, config, output_dir)
+    existing_manifest = read_manifest(output_dir)
+    if existing_manifest is not None:
+        verification = verify_dataset(output_dir, existing_manifest)
+        if not verification.ok:
+            raise ValueError(
+                "Dataset drift detected relative to the frozen manifest: "
+                + "; ".join(verification.details)
+                + f". Mismatched files: {verification.mismatches}; "
+                f"Missing files: {verification.missing}"
+            )
+        manifest_status = "verified"
+    else:
+        from reconciliation.evaluation.dataset_generator import write_dataset
+        write_dataset(dataset, output_dir)
+        manifest_status = "unfrozen"
 
-    residuals = load_residuals(output_dir)
-    normalized = _load_normalized_records(
-        output_dir / "settlements.csv",
-        output_dir / "bank.csv",
-        output_dir / "ledger.csv",
-    )
+    if manifest_status == "verified":
+        residuals = load_residuals(output_dir)
+        normalized = _load_normalized_records(
+            output_dir / "settlements.csv",
+            output_dir / "bank.csv",
+            output_dir / "ledger.csv",
+        )
+    else:
+        l1_result = run_l1_evaluation(dataset, config, output_dir)
+
+        residuals = load_residuals(output_dir)
+        normalized = _load_normalized_records(
+            output_dir / "settlements.csv",
+            output_dir / "bank.csv",
+            output_dir / "ledger.csv",
+        )
+        _, manifest_status = freeze_or_verify_dataset(
+            output_dir, dataset_seed=42
+        )
 
     scenario_map = {s.scenario_id: s for s in dataset.scenarios}
     unit_map = {u.scenario_id: u for u in build_ground_truth_units(list(dataset.scenarios))}
@@ -250,12 +291,12 @@ def _build_report(
     for ev in evaluations:
         stats = cat_stats[ev.category]
         stats["total"] += 1
-        if ev.routing_decision == RoutingDecision.AUTO_ACCEPT:
+        if ev.routing_decision == ProposalVerdict.AUTO_ACCEPT:
             stats["auto_accept"] += 1
             if not ev.correct:
                 stats["false_accepts"] += 1
                 false_accepts.append(ev)
-        elif ev.routing_decision == RoutingDecision.NEEDS_REVIEW:
+        elif ev.routing_decision == ProposalVerdict.NEEDS_REVIEW:
             stats["needs_review"] += 1
         else:
             stats["exception"] += 1

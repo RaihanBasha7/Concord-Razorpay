@@ -36,7 +36,7 @@ from reconciliation.proposal import MatchProposal
 from reconciliation.proposal_orchestration import ProposalOutcome
 from reconciliation.proposal_validation import ProposalOutcomeType
 from reconciliation.retrieval import RetrievalResult
-from reconciliation.routing import RoutingDecision
+from reconciliation.routing import ProposalVerdict
 
 
 class _FakeProvider(StructuredCompletionProvider):
@@ -128,7 +128,7 @@ def test_layer2_harness_detects_false_accepts(tmp_path: Path):
     orchestrator = _FakeLayer2Orchestrator(outcomes)
     report = run_layer2_evaluation(dataset, orchestrator, tmp_path)
 
-    auto_accept_evs = [ev for ev in report.routing_evaluations if ev.routing_decision == RoutingDecision.AUTO_ACCEPT]
+    auto_accept_evs = [ev for ev in report.routing_evaluations if ev.routing_decision == ProposalVerdict.AUTO_ACCEPT]
     assert len(auto_accept_evs) == len(false_accept_scenarios)
     assert report.false_accept_rate > 0.0
     assert len(report.false_accepts) == len(false_accept_scenarios)
@@ -159,7 +159,7 @@ def test_layer2_harness_api_error_never_auto_accepts(tmp_path: Path):
 
     assert report.false_accept_rate == 0.0
     for ev in report.routing_evaluations:
-        assert ev.routing_decision != RoutingDecision.AUTO_ACCEPT
+        assert ev.routing_decision != ProposalVerdict.AUTO_ACCEPT
 
 
 def test_score_routing_auto_accept_no_match_correct_ids_is_correct():
@@ -168,7 +168,8 @@ def test_score_routing_auto_accept_no_match_correct_ids_is_correct():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         record_specs=(),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
-        description="Fee deducted scenario.",
+        has_real_match=True,
+                description="Fee deducted scenario.",
     )
     unit = GroundTruthUnit(
         scenario_id="FEE-001",
@@ -181,7 +182,7 @@ def test_score_routing_auto_accept_no_match_correct_ids_is_correct():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         is_true_orphan=False,
         layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
-        routing_decision=RoutingDecision.AUTO_ACCEPT,
+        routing_decision=ProposalVerdict.AUTO_ACCEPT,
         outcome_type=ProposalOutcomeType.PROPOSAL_VALID,
         confidence=0.95,
         proposal_match_ids=("id-1", "id-2"),
@@ -200,7 +201,8 @@ def test_score_routing_auto_accept_no_match_wrong_ids_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         record_specs=(),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
-        description="Fee deducted scenario.",
+        has_real_match=True,
+                description="Fee deducted scenario.",
     )
     unit = GroundTruthUnit(
         scenario_id="FEE-001",
@@ -213,7 +215,7 @@ def test_score_routing_auto_accept_no_match_wrong_ids_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         is_true_orphan=False,
         layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
-        routing_decision=RoutingDecision.AUTO_ACCEPT,
+        routing_decision=ProposalVerdict.AUTO_ACCEPT,
         outcome_type=ProposalOutcomeType.PROPOSAL_VALID,
         confidence=0.95,
         proposal_match_ids=("id-1",),
@@ -232,7 +234,8 @@ def test_score_routing_validation_failed_matchable_scenario_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         record_specs=(),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
-        description="Fee deducted scenario.",
+        has_real_match=True,
+                description="Fee deducted scenario.",
     )
     unit = GroundTruthUnit(
         scenario_id="FEE-001",
@@ -245,7 +248,7 @@ def test_score_routing_validation_failed_matchable_scenario_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         is_true_orphan=False,
         layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
-        routing_decision=RoutingDecision.EXCEPTION,
+        routing_decision=ProposalVerdict.EXCEPTION,
         outcome_type=ProposalOutcomeType.VALIDATION_FAILED,
         confidence=None,
         proposal_match_ids=(),
@@ -266,7 +269,8 @@ def test_score_routing_no_proposal_matchable_scenario_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         record_specs=(),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
-        description="Fee deducted scenario.",
+        has_real_match=True,
+                description="Fee deducted scenario.",
     )
     unit = GroundTruthUnit(
         scenario_id="FEE-001",
@@ -279,7 +283,7 @@ def test_score_routing_no_proposal_matchable_scenario_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         is_true_orphan=False,
         layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
-        routing_decision=RoutingDecision.EXCEPTION,
+        routing_decision=ProposalVerdict.EXCEPTION,
         outcome_type=ProposalOutcomeType.NO_PROPOSAL,
         confidence=None,
         proposal_match_ids=(),
@@ -300,7 +304,8 @@ def test_score_routing_needs_review_no_match_wrong_ids_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         record_specs=(),
         expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
-        description="Fee deducted scenario.",
+        has_real_match=True,
+                description="Fee deducted scenario.",
     )
     unit = GroundTruthUnit(
         scenario_id="FEE-002",
@@ -313,7 +318,7 @@ def test_score_routing_needs_review_no_match_wrong_ids_is_incorrect():
         category=EdgeCaseCategory.FEE_DEDUCTED,
         is_true_orphan=False,
         layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
-        routing_decision=RoutingDecision.NEEDS_REVIEW,
+        routing_decision=ProposalVerdict.NEEDS_REVIEW,
         outcome_type=ProposalOutcomeType.PROPOSAL_VALID,
         confidence=0.75,
         proposal_match_ids=("id-1",),
@@ -324,3 +329,47 @@ def test_score_routing_needs_review_no_match_wrong_ids_is_incorrect():
     result = _score_routing(raw_eval, scenario, unit)
     assert result.correct is False
     assert "NEEDS_REVIEW with wrong IDs" in result.incorrect_reason
+
+
+def test_score_routing_duplicate_subset_proposal_is_correct():
+    from reconciliation.evaluation.dataset_generator import (
+        _build_duplicate,
+        _SeededRandom,
+        _compute_record_id,
+    )
+    from reconciliation.domain.models import SourceType
+
+    rng = _SeededRandom(42)
+    dup_scen = _build_duplicate(rng, EdgeCaseCategory.DUPLICATE, 1, 0)
+    settlement_ids = tuple(
+        _compute_record_id(spec)
+        for spec in dup_scen.record_specs
+        if spec.source_type == SourceType.SETTLEMENT
+    )
+    all_ids = tuple(
+        _compute_record_id(spec) for spec in dup_scen.record_specs
+    )
+
+    unit = GroundTruthUnit(
+        scenario_id=dup_scen.scenario_id,
+        member_record_ids=all_ids,
+        true_category=EdgeCaseCategory.DUPLICATE,
+        is_true_orphan=False,
+        has_real_match=True,
+    )
+    raw_eval = Layer2RoutingEvaluation(
+        scenario_id=dup_scen.scenario_id,
+        category=EdgeCaseCategory.DUPLICATE,
+        is_true_orphan=False,
+        layer1_expected=ExpectedLayer1Outcome.NO_MATCH,
+        routing_decision=ProposalVerdict.AUTO_ACCEPT,
+        outcome_type=ProposalOutcomeType.PROPOSAL_VALID,
+        confidence=0.9,
+        proposal_match_ids=settlement_ids,
+        correct=False,
+        incorrect_reason=None,
+    )
+
+    result = _score_routing(raw_eval, dup_scen, unit)
+    assert result.correct is True
+    assert result.incorrect_reason is None

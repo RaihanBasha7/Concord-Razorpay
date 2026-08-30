@@ -31,3 +31,4 @@ class GroundTruthUnit:
     member_record_ids: Tuple[str, ...]
     true_category: EdgeCaseCategory
     is_true_orphan: bool
+    has_real_match: bool = False

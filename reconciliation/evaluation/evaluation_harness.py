@@ -57,7 +57,6 @@ def build_ground_truth_units(
 ) -> List[GroundTruthUnit]:
     units = []
     for scen in scenarios:
-        # Compute actual record_ids from specs
         record_ids = tuple(_compute_record_id(spec) for spec in scen.record_specs)
         units.append(
             GroundTruthUnit(
@@ -65,6 +64,7 @@ def build_ground_truth_units(
                 member_record_ids=record_ids,
                 true_category=scen.category,
                 is_true_orphan=len(record_ids) == 1,
+                has_real_match=scen.has_real_match,
             )
         )
     return units

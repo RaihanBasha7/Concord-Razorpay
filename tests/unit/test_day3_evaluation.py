@@ -82,6 +82,7 @@ class TestDatasetGeneration:
                     ),
                 ),
                 expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
+                has_real_match=True,
                 description="",
             )
         ]
@@ -291,7 +292,8 @@ class TestEvaluationHarness:
                 ),
             ),
             expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
-            description="Leaky scenario",
+            has_real_match=True,
+                description="Leaky scenario",
         )
         scenarios = [leak_scen]
         specs = list(leak_scen.record_specs)
@@ -350,6 +352,7 @@ class TestMetrics:
                     ),
                 ),
                 expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
+                has_real_match=True,
                 description="",
             )
         ]
@@ -468,6 +471,7 @@ class TestPipelineResidualSemantics:
                     ),
                 ),
                 expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+                has_real_match=True,
                 description="Fee deducted relationship remains unresolved.",
             )
         ]
@@ -515,6 +519,7 @@ class TestPipelineResidualSemantics:
                     ),
                 ),
                 expected_outcome=ExpectedLayer1Outcome.NO_MATCH,
+                has_real_match=True,
                 description="Single record with no counterpart.",
             )
         ]
@@ -558,6 +563,7 @@ class TestPipelineResidualSemantics:
                     ),
                 ),
                 expected_outcome=ExpectedLayer1Outcome.MATCH_EXACT_ID,
+                has_real_match=True,
                 description="Expected exact match but amounts differ; false negative.",
             )
         ]

@@ -27,6 +27,10 @@ from typing import Dict, List, Optional, Tuple
 
 from reconciliation.audit import Auditor, make_audit_record
 from reconciliation.domain.models import NormalizedRecord
+from reconciliation.evaluation.dataset_fingerprint import (
+    compute_dataset_manifest,
+    read_manifest,
+)
 from reconciliation.layer2 import Layer2Case, reconstruct_layer2_case
 from reconciliation.loader import (
     ResidualScenario,
@@ -52,6 +56,7 @@ class RunSummary:
     by_outcome: Dict[str, int] = field(default_factory=dict)
     audit_path: Optional[str] = None
     diagnostics: List[str] = field(default_factory=list)
+    dataset_fingerprint: Optional[str] = None
 
 
 class Day4Runner:
@@ -79,6 +84,39 @@ class Day4Runner:
         self._auditor = auditor
         self._retrieval_config = retrieval_config or RetrievalConfig()
         self._audit_failures = 0
+        self._dataset_fingerprint, self._fingerprint_diagnostics = (
+            self._resolve_dataset_fingerprint()
+        )
+
+    def _resolve_dataset_fingerprint(self) -> Tuple[Optional[str], List[str]]:
+        """Compute the fingerprint of the dataset this runner is consuming.
+
+        Stamps every audit record with this fingerprint so that downstream
+        evaluation can prove the Layer 2 artifact was produced from the same
+        dataset. If a frozen manifest is present, the on-disk dataset is
+        verified against it and a warning is emitted (as a diagnostic) on drift
+        rather than failing the run, since the runner is a manual tool.
+        """
+        diagnostics: List[str] = []
+        try:
+            manifest = compute_dataset_manifest(self._data_dir)
+        except FileNotFoundError as exc:
+            diagnostics.append(
+                f"Could not compute dataset fingerprint: {exc}"
+            )
+            return None, diagnostics
+
+        fingerprint = manifest.fingerprint()
+
+        frozen = read_manifest(self._data_dir)
+        if frozen is not None and frozen.fingerprint() != fingerprint:
+            diagnostics.append(
+                "Dataset drift detected: the dataset on disk no longer matches "
+                "the frozen manifest. Layer 2 audit records produced now will "
+                "carry a different fingerprint and will be rejected by "
+                "provenance verification in the evaluation harness."
+            )
+        return fingerprint, diagnostics
 
     def run(self) -> RunSummary:
         normalized = load_normalized_records(self._data_dir)
@@ -86,6 +124,7 @@ class Day4Runner:
 
         by_outcome: Dict[str, int] = {}
         diagnostics: List[str] = []
+        diagnostics.extend(self._fingerprint_diagnostics)
         for residual in residuals:
             outcome = self._process_one(residual, normalized)
             by_outcome[outcome.outcome.value] = (
@@ -103,6 +142,7 @@ class Day4Runner:
                 else None
             ),
             diagnostics=diagnostics,
+            dataset_fingerprint=self._dataset_fingerprint,
         )
 
     def _process_one(
@@ -139,6 +179,7 @@ class Day4Runner:
             outcome=outcome.outcome.value,
             proposal=outcome.proposal,
             reason=outcome.reason,
+            dataset_fingerprint=self._dataset_fingerprint,
         )
 
         if self._auditor is not None:
@@ -151,5 +192,11 @@ class Day4Runner:
         print(f"Day 4.5 Layer 2 run — scenarios attempted: {summary.attempted}")
         if summary.audit_path:
             print(f"Audit trail: {summary.audit_path}")
+        if summary.dataset_fingerprint:
+            print(f"Dataset fingerprint: {summary.dataset_fingerprint}")
         for outcome, count in sorted(summary.by_outcome.items()):
             print(f"  {outcome:18s} {count}")
+        if summary.diagnostics:
+            print("\nDiagnostics:")
+            for diagnostic in summary.diagnostics:
+                print(f"  - {diagnostic}")

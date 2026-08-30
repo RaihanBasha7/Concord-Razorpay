@@ -263,3 +263,89 @@ class TestMakeAuditRecord:
         serialized = record.to_json()
         assert "abc123" in serialized
         assert "0.55" in serialized
+
+    def test_make_record_optionally_carries_dataset_fingerprint(self):
+        proposal = MatchProposal(
+            proposed_match_ids=["A"], confidence=0.55, rationale="note"
+        )
+        record = make_audit_record(
+            correlation_id="abc",
+            presented_record_ids=["A", "B"],
+            outcome=ProposalOutcomeType.PROPOSAL_VALID.value,
+            proposal=proposal,
+            reason="validated",
+            dataset_fingerprint="deadbeef",
+        )
+        assert record.dataset_fingerprint == "deadbeef"
+        assert '"dataset_fingerprint": "deadbeef"' in record.to_json()
+
+
+class TestAuditDatasetFingerprint:
+    def _service(self, provider):
+        return ProposalOrchestrator(ProposalService(provider))
+
+    def test_audit_record_stamps_frozen_dataset_fingerprint(self):
+        from reconciliation.evaluation.dataset_fingerprint import read_manifest
+
+        provider = FakeProvider(
+            {"proposed_match_ids": ["UNUSED"], "confidence": 0.9, "rationale": "x"}
+        )
+        auditor = CapturingAuditor()
+        runner = Day4Runner(
+            data_dir=_data_dir(),
+            orchestrator=self._service(provider),
+            limit=1,
+            auditor=auditor,
+        )
+        summary = runner.run()
+
+        manifest = read_manifest(_data_dir())
+        assert manifest is not None
+        assert summary.dataset_fingerprint == manifest.fingerprint()
+        record = auditor.records[0]
+        assert record.dataset_fingerprint == manifest.fingerprint()
+
+    def test_runner_diagnostics_on_dataset_drift(self, tmp_path):
+        # Build a dataset dir whose audit records carry a fingerprint, then
+        # tamper with a CSV; the runner must surface a drift diagnostic.
+        from reconciliation.evaluation.dataset_fingerprint import (
+            compute_dataset_manifest,
+            write_manifest,
+        )
+        from reconciliation.evaluation.dataset_generator import (
+            generate_dataset,
+            write_dataset,
+        )
+
+        ds = generate_dataset(seed=42)
+        write_dataset(ds, tmp_path)
+        # Minimal valid (header-only) residuals so the runner can load state.
+        (tmp_path / "residuals.csv").write_text(
+            "scenario_id,category,record_count,member_record_ids,"
+            "has_valid_relationship,is_true_exception,description\n",
+            encoding="utf-8",
+        )
+        manifest = compute_dataset_manifest(tmp_path, dataset_seed=42)
+        write_manifest(manifest, tmp_path)
+        # Tamper with a frozen file so its hash no longer matches the manifest.
+        bank_path = tmp_path / "bank.csv"
+        bank_path.write_text(
+            bank_path.read_text(encoding="utf-8")
+            + "\nBANK-TAMPERED,100000,2026-08-01,t:\n",
+            encoding="utf-8",
+        )
+
+        provider = FakeProvider(
+            {"proposed_match_ids": [], "confidence": 0.1, "rationale": "weak"}
+        )
+        runner = Day4Runner(
+            data_dir=tmp_path,
+            orchestrator=self._service(provider),
+            limit=1,
+            auditor=CapturingAuditor(),
+        )
+        # The drift diagnostic is computed at construction time (read-only).
+        drift_diags = [d for d in runner._fingerprint_diagnostics if "drift" in d]
+        assert drift_diags
+        assert runner._dataset_fingerprint is not None
+

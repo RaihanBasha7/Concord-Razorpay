@@ -15,19 +15,25 @@ AUTO_ACCEPT_THRESHOLD = 0.90
 REVIEW_THRESHOLD = 0.60
 
 
-class RoutingDecision(str, Enum):
+class ProposalVerdict(str, Enum):
+    """Scenario-level verdict for a Layer 2 proposal outcome.
+
+    This is deliberately distinct from layer3.RoutingDecision, which is
+    the per-record routing model combining Layer 1 and Layer 2 results.
+    """
+
     AUTO_ACCEPT = "AUTO_ACCEPT"
     NEEDS_REVIEW = "NEEDS_REVIEW"
     EXCEPTION = "EXCEPTION"
 
 
-def route(outcome: ProposalOutcome) -> RoutingDecision:
+def route(outcome: ProposalOutcome) -> ProposalVerdict:
     if outcome.outcome == ProposalOutcomeType.PROPOSAL_VALID:
         confidence = outcome.proposal.confidence if outcome.proposal else 0.0
         if confidence >= AUTO_ACCEPT_THRESHOLD:
-            return RoutingDecision.AUTO_ACCEPT
+            return ProposalVerdict.AUTO_ACCEPT
         if confidence >= REVIEW_THRESHOLD:
-            return RoutingDecision.NEEDS_REVIEW
-        return RoutingDecision.EXCEPTION
+            return ProposalVerdict.NEEDS_REVIEW
+        return ProposalVerdict.EXCEPTION
 
-    return RoutingDecision.EXCEPTION
+    return ProposalVerdict.EXCEPTION
