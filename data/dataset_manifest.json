@@ -11,7 +11,7 @@
   },
   "active_resumable_partial_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "b34a5921fb5b12ddfaba4120c60ca5dbf48617300752de754e8fdb81100c2fae",
+    "sha256": "13f7374bc4bfeb6cd6b98b56f8a898a399cadc8dfa0dc6526417ef1cae5bca9e",
     "generation_timestamp": "2026-09-01T10:00:06.709654+00:00",
     "record_count": 45,
     "status": "partial",
@@ -24,7 +24,7 @@
   },
   "canonical_layer2_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "b34a5921fb5b12ddfaba4120c60ca5dbf48617300752de754e8fdb81100c2fae",
+    "sha256": "13f7374bc4bfeb6cd6b98b56f8a898a399cadc8dfa0dc6526417ef1cae5bca9e",
     "record_count": 45,
     "total_expected": 77,
     "status": "partial",
