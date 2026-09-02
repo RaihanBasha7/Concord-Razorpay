@@ -1,21 +1,21 @@
 {
   "schema_version": "1.0",
   "dataset_seed": 42,
-  "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+  "fingerprint": "c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df",
   "files": {
-    "ground_truth.json": "929c6cd6a75a275fed39ed1d397be0d0705e663d631f5cd0cc8ea3a059578d56",
-    "settlements.csv": "0a4e6ff18b5e0258c1dcda1ed90700526b4b19b9ab703114f2ea21a88d87b8d3",
-    "bank.csv": "8a929b9adacf198d5e58d92fd64d908fdfb7f790f0a912099d2c943229e87429",
-    "ledger.csv": "7afc452762e0e282a8a5c57e0d18c82b95b0a128ee108862b56a83aaddb082a2",
-    "residuals.csv": "337a6df2d92cc065d4e858ce0e44d51b4fb3a8e6473c0a756a4751a1fe6bc1a2"
+    "settlements.csv": "b145a9a9a9fdc2ae9b7a7bb1f8c8159967e0f00de780c7d0fcb8f04d47161679",
+    "bank.csv": "f827e7324b278c07089cfb0bdd42c19251430c27e45e36bf7894ef8e0b6302bd",
+    "ledger.csv": "d958b7df845cb91558d6d2b74dc57e01d4c4578e29dbb96085fc564b0bb958b2",
+    "ground_truth.json": "21dc5b0dd45ec7cc314826b74c98f77a4387412ef4d1102b2eaa9839b6b8dbac",
+    "residuals.csv": "96d232d37c32d5675c513126dc731dc35883fba4aad28f62077bfc37e4d0077c"
   },
   "active_resumable_partial_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "2711b6d8e83685eea9514eac742a29cb4f427976fe4bb341636dddd5480a7e23",
+    "sha256": "de99ea0d8c690a573e7493863f76f28a31450181ebc9bcf0424053bd346a840e",
     "generation_timestamp": "2026-09-01T10:00:06.709654+00:00",
     "record_count": 45,
     "status": "partial",
-    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT \u2014 not canonical until 77/77 completion. Dataset fingerprint: b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93. Partial: 32 unevaluated due to Groq quota."
+    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT -- not canonical until 77/77 completion. Dataset fingerprint: c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df. Partial: 32 unevaluated due to Groq quota."
   },
   "final_canonical_artifact": {
     "filename": "layer2_full_audit.jsonl",
@@ -24,10 +24,10 @@
   },
   "canonical_layer2_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "2711b6d8e83685eea9514eac742a29cb4f427976fe4bb341636dddd5480a7e23",
+    "sha256": "de99ea0d8c690a573e7493863f76f28a31450181ebc9bcf0424053bd346a840e",
     "record_count": 45,
     "total_expected": 77,
     "status": "partial",
-    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated."
+    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated. Dataset fingerprint: c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df."
   }
 }
