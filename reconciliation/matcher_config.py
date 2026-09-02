@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from reconciliation.config import MatchingTolerances
 
 
 @dataclass(frozen=True)
@@ -19,3 +23,11 @@ class MatcherConfig:
             raise ValueError(
                 "date_window_days must be a non-negative integer."
             )
+
+    @classmethod
+    def from_tolerances(cls, tolerances: "MatchingTolerances") -> "MatcherConfig":
+        """Create a MatcherConfig from the shared MatchingTolerances defaults."""
+        return cls(
+            amount_tolerance_paise=tolerances.amount_tolerance_paise,
+            date_window_days=tolerances.date_window_days,
+        )

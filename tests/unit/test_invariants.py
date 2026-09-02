@@ -307,3 +307,33 @@ class TestReconciliationDecisionValidation:
             confidence=1.0,
         )
         assert decision.confidence == 1.0
+
+
+class TestSharedToleranceObject:
+    """Verify that Layer 1 (MatcherConfig) and Layer 3 (route) reference
+    the exact same DEFAULT_TOLERANCES object — not just equal values."""
+
+    def test_layer3_and_matcher_config_share_same_object(self):
+        from reconciliation.config import DEFAULT_TOLERANCES
+        from reconciliation.layer3 import route
+        from reconciliation.matcher_config import MatcherConfig
+
+        # layer3.route default arg object must be the same singleton
+        import inspect
+
+        route_sig = inspect.signature(route)
+        amount_default = route_sig.parameters["amount_tolerance_paise"].default
+        assert amount_default is DEFAULT_TOLERANCES.amount_tolerance_paise, (
+            f"layer3.route uses {amount_default!r}, not DEFAULT_TOLERANCES.amount_tolerance_paise"
+        )
+
+        # MatcherConfig.from_tolerances builds from the same object
+        mc = MatcherConfig.from_tolerances(DEFAULT_TOLERANCES)
+        assert mc.amount_tolerance_paise is DEFAULT_TOLERANCES.amount_tolerance_paise
+        assert mc.date_window_days is DEFAULT_TOLERANCES.date_window_days
+
+    def test_default_tolerances_values(self):
+        from reconciliation.config import DEFAULT_TOLERANCES
+
+        assert DEFAULT_TOLERANCES.amount_tolerance_paise == 100
+        assert DEFAULT_TOLERANCES.date_window_days == 2

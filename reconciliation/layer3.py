@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable, List, Optional, Tuple
 
+from reconciliation.config import DEFAULT_TOLERANCES
 from reconciliation.domain.models import NormalizedRecord, ReconciliationDecision
 from reconciliation.proposal_validation import ProposalOutcome, ProposalOutcomeType
 
@@ -85,8 +86,8 @@ class RoutingDecision:
 def _check_financial_evidence(
     proposal: "MatchProposal",
     all_records_by_id: dict[str, NormalizedRecord],
-    amount_tolerance_paise: int = 100,
-    date_window_days: int = 2,
+    amount_tolerance_paise: int = DEFAULT_TOLERANCES.amount_tolerance_paise,
+    date_window_days: int = DEFAULT_TOLERANCES.date_window_days,
 ) -> bool:
     """Check whether a proposal has sufficient deterministic financial evidence.
 
@@ -226,8 +227,8 @@ def route(
     layer1_decisions: Iterable[ReconciliationDecision],
     layer2_outcomes: Iterable[ProposalOutcome],
     all_records: Iterable[NormalizedRecord],
-    amount_tolerance_paise: int = 100,
-    date_window_days: int = 2,
+    amount_tolerance_paise: int = DEFAULT_TOLERANCES.amount_tolerance_paise,
+    date_window_days: int = DEFAULT_TOLERANCES.date_window_days,
 ) -> List[RoutingDecision]:
     """
     Deterministically route every input record to exactly one RoutingDecision.
@@ -277,8 +278,8 @@ def _apply_layer2(
     outcomes: List[ProposalOutcome],
     decisions: dict[str, RoutingDecision],
     records_by_id: dict[str, NormalizedRecord],
-    amount_tolerance_paise: int = 100,
-    date_window_days: int = 2,
+    amount_tolerance_paise: int = DEFAULT_TOLERANCES.amount_tolerance_paise,
+    date_window_days: int = DEFAULT_TOLERANCES.date_window_days,
 ) -> None:
     for outcome in outcomes:
         proposed_ids = (
