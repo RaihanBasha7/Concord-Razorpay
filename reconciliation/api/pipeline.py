@@ -13,16 +13,26 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+from pathlib import Path
 
 from reconciliation.domain.models import NormalizedRecord, SourceType
+from reconciliation.frozen_dataset import (
+    load_frozen_l2_outcomes,
+    verify_upload_against_manifest,
+)
 from reconciliation.layer3 import route as layer3_route
 from reconciliation.matcher import reconcile
 from reconciliation.matcher_config import MatcherConfig
 from reconciliation.normalizer import NormalizationError, normalize_record
 from reconciliation.proposal_validation import ProposalOutcome, ProposalOutcomeType
+
+
+logger = logging.getLogger("concord.api.pipeline")
 
 
 # ---------------------------------------------------------------------------
@@ -380,7 +390,7 @@ def _build_eval_report(
             "decisions_by_rule": l1_decisions_by_rule,
         },
         "layer2": {
-            "scenarios_processed": len(l2_outcomes),
+            "residual_records_processed": len(l2_outcomes),
             "outcomes_by_type": l2_outcomes_by_type,
         },
         "layer3_routing_composition": routing_composition,
@@ -402,21 +412,36 @@ def run_batch_pipeline(
     ledger_rows: List[Dict[str, str]],
     *,
     layer2_mode: str = "not_executed",
+    upload_fingerprint: Optional[Dict[str, str]] = None,
+    data_dir: Optional[Path | str] = None,
 ) -> BatchPipelineResult:
     """Execute the full Concord pipeline on pre-parsed CSV rows.
 
-    Flow: normalize → Layer 1 → Layer 3 routing → evaluation summary.
+    Flow: normalize → Layer 1 → [Layer 2 if frozen dataset] → Layer 3
+    routing → evaluation summary.
 
-    The API does not construct artificial Layer 2 scenarios from
-    arbitrary unmatched records.  Layer 2 outcomes are always empty.
-    Unmatched records fall through to Layer 3 as EXCEPTION / NO_CANDIDATE.
+    When ``upload_fingerprint`` is provided AND ``data_dir`` contains a
+    frozen dataset manifest, the pipeline verifies the upload matches the
+    frozen dataset.  If it matches, pre-computed Layer 2 artifacts are
+    loaded from the data directory and routed through Layer 3.  If the
+    fingerprint does not match, Layer 2 outcomes remain empty (fail-closed).
+
+    The API never constructs artificial Layer 2 scenarios from arbitrary
+    unmatched records.
 
     Parameters
     ----------
     layer2_mode : str
         A label recorded in the eval report so consumers can distinguish
-        real AI processing from the default API path.  Currently always
-        ``not_executed`` because the API does not execute Layer 2.
+        real AI processing from the default API path.
+    upload_fingerprint : dict, optional
+        SHA-256 hashes of the raw CSV bytes, mapping manifest file names
+        to hex digests.  Computed by the route handler from the uploaded
+        bytes.  When None, Layer 2 is not executed.
+    data_dir : Path or str, optional
+        Path to the data directory containing the frozen dataset manifest
+        and Layer 2 audit artifacts.  Required when upload_fingerprint is
+        provided.
 
     Raises CSVValidationError if normalization fails for any row.
     """
@@ -445,12 +470,26 @@ def run_batch_pipeline(
 
     # 3. Layer 2 residual processing.
     #
-    #    The API does not construct artificial Layer 2 scenarios from
-    #    arbitrary unmatched records.  Layer 2 outcomes remain empty
-    #    unless a valid production-safe case construction mechanism
-    #    exists outside this pipeline.  Unmatched records fall through
-    #    to Layer 3's EXCEPTION / NO_CANDIDATE fallback.
+    #    When the upload fingerprint matches the frozen evaluation dataset,
+    #    pre-computed Layer 2 artifacts are loaded from the data directory.
+    #    Otherwise, Layer 2 is not executed: no artificial scenarios are
+    #    constructed from arbitrary unmatched records.  Unmatched records
+    #    fall through to Layer 3's EXCEPTION / NO_CANDIDATE fallback.
     l2_outcomes: List[ProposalOutcome] = []
+    if upload_fingerprint is not None and data_dir is not None:
+        matches, _manifest, mismatches = verify_upload_against_manifest(
+            upload_fingerprint, data_dir
+        )
+        if matches:
+            layer2_mode = "frozen_artifact"
+            l2_outcomes = load_frozen_l2_outcomes(
+                data_dir, all_records, l1_result.residual_record_ids
+            )
+        else:
+            logger.info(
+                "Upload fingerprint does not match frozen dataset: %s",
+                "; ".join(mismatches),
+            )
 
     # 4. Layer 3 — deterministic guardrail routing.
     routing_decisions = layer3_route(
@@ -468,6 +507,35 @@ def run_batch_pipeline(
         l1_result, l2_outcomes, routing_decisions, all_records, records_by_source
     )
     eval_report["layer2_mode"] = layer2_mode
+    if layer2_mode == "frozen_artifact":
+        eval_report["demo_mode"] = "artifact_replay"
+        eval_report["demo_mode_note"] = (
+            "Layer 2 proposals are genuine prior Groq inference outputs "
+            "from one pinned canonical artifact.  Concord does not make a "
+            "new LLM request during upload; the stored model outputs are "
+            "replayed and routed through Layer 3 deterministic guardrails."
+        )
+        # Record artifact provenance for the eval report.
+        eval_report["artifact_provenance"] = {
+            "residual_scenarios": len(
+                [rid for rid in l1_result.residual_record_ids]
+            ) if hasattr(l1_result, 'residual_record_ids') else None,
+            "successful_proposals": sum(
+                1 for o in l2_outcomes
+                if o.outcome == ProposalOutcomeType.PROPOSAL_VALID
+            ),
+            "provider_failures": sum(
+                1 for o in l2_outcomes
+                if o.outcome in (
+                    ProposalOutcomeType.API_ERROR,
+                    ProposalOutcomeType.TIMEOUT,
+                )
+            ),
+            "no_proposal": sum(
+                1 for o in l2_outcomes
+                if o.outcome == ProposalOutcomeType.NO_PROPOSAL
+            ),
+        }
 
     # 7. Build structured audit records.
     audit_records = _build_audit_records(

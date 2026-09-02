@@ -20,6 +20,7 @@ from reconciliation.api.pipeline import (
 )
 from reconciliation.api.store import BatchStore
 from reconciliation.domain.models import SourceType
+from reconciliation.frozen_dataset import compute_upload_fingerprint
 from reconciliation.layer3 import RoutingBucket
 
 _VALID_BUCKETS = {b.value for b in RoutingBucket}
@@ -31,6 +32,7 @@ def create_router(
     store: BatchStore,
     *,
     layer2_mode: str = "not_executed",
+    data_dir: str | None = None,
 ) -> APIRouter:
     """Create an APIRouter with all Concord endpoints bound to *store*.
 
@@ -38,8 +40,11 @@ def create_router(
     ----------
     layer2_mode : str
         Label recorded in the eval report so consumers can distinguish
-        real AI processing from the default API path.  Currently always
-        ``not_executed`` because the API does not execute Layer 2.
+        real AI processing from the default API path.
+    data_dir : str, optional
+        Path to the data directory containing the frozen dataset manifest
+        and Layer 2 audit artifacts.  When provided, the pipeline will
+        check uploads against the frozen dataset fingerprint.
     """
 
     router = APIRouter()
@@ -71,10 +76,19 @@ def create_router(
             bank_rows = read_csv_content(bank_content, SourceType.BANK)
             ledger_rows = read_csv_content(ledger_content, SourceType.LEDGER)
 
+            # Compute fingerprint from raw CSV bytes for frozen dataset
+            # detection.  This is content-based (SHA-256 of byte content),
+            # not filename-based.
+            upload_fingerprint = compute_upload_fingerprint(
+                settlement_content, bank_content, ledger_content
+            )
+
             # Run the full reconciliation pipeline.
             result = run_batch_pipeline(
                 settlement_rows, bank_rows, ledger_rows,
                 layer2_mode=layer2_mode,
+                upload_fingerprint=upload_fingerprint,
+                data_dir=data_dir,
             )
 
             # Persist all artifacts.

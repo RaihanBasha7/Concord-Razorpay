@@ -27,7 +27,10 @@ from reconciliation.api.store import BatchStore
 logger = logging.getLogger("concord.api")
 
 
-def create_app(db_path: Path | str = "data/concord.db") -> FastAPI:
+def create_app(
+    db_path: Path | str = "data/concord.db",
+    data_dir: Path | str | None = None,
+) -> FastAPI:
     """Create and configure the Concord FastAPI application.
 
     Parameters
@@ -35,7 +38,16 @@ def create_app(db_path: Path | str = "data/concord.db") -> FastAPI:
     db_path : Path or str
         Path to the SQLite database file.  Parent directories are created
         automatically if they do not exist.
+    data_dir : Path or str, optional
+        Path to the data directory containing the frozen dataset manifest
+        and Layer 2 audit artifacts.  When provided, the API will verify
+        uploads against the frozen dataset fingerprint and load pre-computed
+        Layer 2 results when appropriate.
     """
+    if data_dir is None:
+        data_dir = Path(db_path).parent
+    else:
+        data_dir = str(data_dir)
     store = BatchStore(db_path)
 
     @asynccontextmanager
@@ -109,6 +121,7 @@ def create_app(db_path: Path | str = "data/concord.db") -> FastAPI:
     router = create_router(
         store,
         layer2_mode="not_executed",
+        data_dir=data_dir,
     )
     app.include_router(router, prefix="/batches", tags=["batches"])
 

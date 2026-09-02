@@ -1,12 +1,33 @@
 {
   "schema_version": "1.0",
   "dataset_seed": 42,
-  "fingerprint": "8dca28fe7e5c50655b8d0cfbf3bfe858c17f52af82d44dc70a6520eec6fa5e6d",
+  "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
   "files": {
-    "ground_truth.json": "8eff3307f09570061406b2715eff7409396166d5e23d99c9102817d99c370735",
-    "settlements.csv": "c2a0b226af8aaddfa52045cc4c664632e0c6559aa2c5d999a1b24447e4b85fd1",
-    "bank.csv": "0d224a2639cf809da946d7f69db03824c1921be249db3ba1ce8c6999d3955847",
-    "ledger.csv": "b21348c1017a80ece51e1cdf9f1bb1e2848e3d6e67808de163d546c9241ce42e",
-    "residuals.csv": "83e1d429bab25c2cb345236f312948ab306ad4c102df7799de196d59d7984665"
+    "ground_truth.json": "929c6cd6a75a275fed39ed1d397be0d0705e663d631f5cd0cc8ea3a059578d56",
+    "settlements.csv": "0a4e6ff18b5e0258c1dcda1ed90700526b4b19b9ab703114f2ea21a88d87b8d3",
+    "bank.csv": "8a929b9adacf198d5e58d92fd64d908fdfb7f790f0a912099d2c943229e87429",
+    "ledger.csv": "7afc452762e0e282a8a5c57e0d18c82b95b0a128ee108862b56a83aaddb082a2",
+    "residuals.csv": "337a6df2d92cc065d4e858ce0e44d51b4fb3a8e6473c0a756a4751a1fe6bc1a2"
+  },
+  "active_resumable_partial_artifact": {
+    "filename": "layer2_clean_audit.jsonl",
+    "sha256": "2711b6d8e83685eea9514eac742a29cb4f427976fe4bb341636dddd5480a7e23",
+    "generation_timestamp": "2026-09-01T10:00:06.709654+00:00",
+    "record_count": 45,
+    "status": "partial",
+    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT \u2014 not canonical until 77/77 completion. Dataset fingerprint: b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93. Partial: 32 unevaluated due to Groq quota."
+  },
+  "final_canonical_artifact": {
+    "filename": "layer2_full_audit.jsonl",
+    "status": "pending_full_run",
+    "note": "Will become the FINAL CANONICAL ARTIFACT only after scripts/run_layer2_full.py completes all 77 scenarios with the correct fingerprint."
+  },
+  "canonical_layer2_artifact": {
+    "filename": "layer2_clean_audit.jsonl",
+    "sha256": "2711b6d8e83685eea9514eac742a29cb4f427976fe4bb341636dddd5480a7e23",
+    "record_count": 45,
+    "total_expected": 77,
+    "status": "partial",
+    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated."
   }
 }
