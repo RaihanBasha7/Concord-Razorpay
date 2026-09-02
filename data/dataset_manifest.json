@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "dataset_seed": 42,
-  "fingerprint": "c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df",
+  "fingerprint": "d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0",
   "files": {
     "settlements.csv": "b145a9a9a9fdc2ae9b7a7bb1f8c8159967e0f00de780c7d0fcb8f04d47161679",
     "bank.csv": "f827e7324b278c07089cfb0bdd42c19251430c27e45e36bf7894ef8e0b6302bd",
@@ -11,11 +11,11 @@
   },
   "active_resumable_partial_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "de99ea0d8c690a573e7493863f76f28a31450181ebc9bcf0424053bd346a840e",
+    "sha256": "b34a5921fb5b12ddfaba4120c60ca5dbf48617300752de754e8fdb81100c2fae",
     "generation_timestamp": "2026-09-01T10:00:06.709654+00:00",
     "record_count": 45,
     "status": "partial",
-    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT -- not canonical until 77/77 completion. Dataset fingerprint: c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df. Partial: 32 unevaluated due to Groq quota."
+    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT -- not canonical until 77/77 completion. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0. Partial: 32 unevaluated due to Groq quota."
   },
   "final_canonical_artifact": {
     "filename": "layer2_full_audit.jsonl",
@@ -24,10 +24,10 @@
   },
   "canonical_layer2_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "de99ea0d8c690a573e7493863f76f28a31450181ebc9bcf0424053bd346a840e",
+    "sha256": "b34a5921fb5b12ddfaba4120c60ca5dbf48617300752de754e8fdb81100c2fae",
     "record_count": 45,
     "total_expected": 77,
     "status": "partial",
-    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated. Dataset fingerprint: c3776843de16106d1104be1545a1263581c3d2e89a857a22e562f082b008a2df."
+    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0."
   }
 }

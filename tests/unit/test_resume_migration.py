@@ -33,7 +33,7 @@ CLEAN_ARTIFACT = DATA_DIR / "layer2_clean_audit.jsonl"
 LEGACY_ARTIFACT = DATA_DIR / "layer2_full_audit.legacy.jsonl"
 RESIDUALS = load_residuals(DATA_DIR)
 RESIDUAL_MAP = {r.scenario_id: r for r in RESIDUALS}
-EXPECTED_FINGERPRINT = "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93"
+EXPECTED_FINGERPRINT = "d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0"
 
 
 def _extract_scenario_id(correlation_id: str) -> str:

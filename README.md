@@ -130,7 +130,7 @@ When the frozen evaluation dataset is uploaded through the API, Concord does **n
 
 ### Headline metrics (historical — stale artifact)
 
-**⚠ The numbers below are HISTORICAL and no longer reflect the current dataset.** They were computed from `layer2_full_audit.20260829T181300.053055.jsonl` (fingerprint `8dca28fe7e5c5065…`), which was generated against a **previous** dataset fingerprint. The current dataset fingerprint is `b8bf3feb57ffcb23c…` (see `data/dataset_manifest.json`). These numbers are retained for historical reference only; they should not be cited as current system performance.
+**⚠ The numbers below are HISTORICAL and no longer reflect the current dataset.** They were computed from `layer2_full_audit.20260829T181300.053055.jsonl` (fingerprint `8dca28fe7e5c5065…`), which was generated against a **previous** dataset fingerprint. The current dataset fingerprint is `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0` (see `data/dataset_manifest.json`). These numbers are retained for historical reference only; they should not be cited as current system performance.
 
 | Metric | Historical Value |
 |--------|------------------|
@@ -145,7 +145,7 @@ When the frozen evaluation dataset is uploaded through the API, Concord does **n
 | Baseline precision | 75.00% (36/48 correct) |
 | AI precision / recall | See `data/day5_full_pipeline_report.json` (historical; not recomputed for canonical artifact) |
 
-**Current partial numbers** (from `layer2_clean_audit.jsonl`, 45/77 scenarios, fingerprint `b8bf3feb…`): 26 PROPOSAL_VALID, 10 NO_PROPOSAL, 9 API_ERROR. The evaluation is incomplete — 32 scenarios have not been attempted and 9 failed on Groq rate limits. No headline-metrics table can be computed until the full 77/77 evaluation completes.
+**Current partial numbers** (from `layer2_clean_audit.jsonl`, 45/77 scenarios, dataset fingerprint `d91ead9a86a4d1dc…`): 26 PROPOSAL_VALID, 10 NO_PROPOSAL, 9 API_ERROR. The evaluation is incomplete — 32 scenarios have not been attempted and 9 failed on Groq rate limits. No headline-metrics table can be computed until the full 77/77 evaluation completes.
 
 The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.1% vs 40.00%) but never produces a false positive. The current canonical Layer 2 artifact contains 26 genuine Groq proposals (from 45 scenarios evaluated out of 77 residual scenarios). After deterministic deduplication in the loading code, these PROPOSAL_VALID outcomes route records to AI buckets via Layer 3 guardrails. The remaining residuals route to EXCEPTION via API_ERROR or NO_PROPOSAL outcomes — these represent the workload that a fully evaluated Layer 2 would address.
 
