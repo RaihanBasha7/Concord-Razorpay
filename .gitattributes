@@ -3,3 +3,6 @@
 data/*.csv text eol=lf
 data/*.json text eol=lf
 data/*.jsonl text eol=lf
+
+# Enforce LF for all tracked text file types.
+* text=auto eol=lf
