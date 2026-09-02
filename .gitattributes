@@ -1,0 +1,5 @@
+# Enforce LF line endings for data files to prevent CRLF/fingerprint regressions.
+# SHA-256 hashes in data/dataset_manifest.json are computed from LF content.
+data/*.csv text eol=lf
+data/*.json text eol=lf
+data/*.jsonl text eol=lf
