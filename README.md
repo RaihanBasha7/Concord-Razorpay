@@ -105,6 +105,8 @@ The repository includes unit tests, invariant tests, and acceptance tests coveri
 
 ## Day 5 — Evaluation & Guardrails
 
+**Layer 2 evaluation status (as of 2026-09-02):** 36 of 77 Layer 2 scenarios completed successfully, 9 failed on Groq rate limits (TPM/TPD exhaustion), and 32 have not yet been attempted. The canonical artifact (`data/layer2_clean_audit.jsonl`) covers 45/77 scenarios (36 completed, 9 API_ERROR). A full 77/77 evaluation has not been completed.
+
 Concord evaluates the full pipeline against a synthetic dataset of 120 scenarios (245 records) with controlled category quotas: exact-id matches, amount-date matches, duplicates, fee deductions, partial refunds, split settlements, rounding differences, inconsistent narrations, true orphans, and late-arriving records. The dataset is frozen on disk with a SHA-256 fingerprint; every evaluation run verifies the on-disk files match the frozen manifest before computing metrics.
 
 ### Layer 3 routing buckets
@@ -122,23 +124,30 @@ Every record is assigned exactly one of four routing decisions:
 
 A simple amount+date matcher runs against the same dataset to establish a comparison baseline. It uses the same tolerance (100 paise, 2-day window) but no ambiguity protection — it accepts the first candidate it finds. This deliberately under-specifies the matching logic so Layer 1's deterministic precision can be measured against a minimal straw man, not against a competitor.
 
-### Current headline metrics
+### Layer 2 artifact replay
 
-These numbers are from the most recent full evaluation run (`data/day5_full_pipeline_report.json`, 2026-08-30). The Layer 2 artifact was produced against the Groq API under heavy rate limiting (74/77 `API_ERROR`, 1 `NO_PROPOSAL`, 2 `PROPOSAL_VALID`). The numbers below are real, not rounded favorably.
+When the frozen evaluation dataset is uploaded through the API, Concord does **not** make a new LLM request. Instead, it loads pre-computed Layer 2 audit records from JSONL artifacts produced by prior Groq inference runs (documented in `data/layer2_clean_audit.jsonl` and historical `data/layer2_full_audit.*.jsonl` files). These stored model outputs are routed through the same Layer 3 deterministic guardrails used by the application. The `demo_mode: "artifact_replay"` field in the evaluation report makes this explicit. The `layer2_mode` field in API responses reads `"frozen_artifact"` when artifact replay is active, or `"not_executed"` for non-frozen uploads.
 
-| Metric | Value |
-|--------|-------|
-| Layer 1 match rate | 35.83% (43/120 scenarios) |
-| Layer 1 precision | 100.00% (43/43 correct) |
-| False-accept rate | 0.00% (0/2 auto-accepted) |
-| AI recall (system-wide) | 4.76% (2/42 residuals with real match) |
-| AI recall (attempted-only) | 66.67% (2/3 attempted residuals) |
-| AI precision at ≥0.90 | 100.00% (1/1) |
-| Exception records | 156 of 245 (63.7%) — 60 correctly refused, 96 should have been caught |
+### Headline metrics (historical — stale artifact)
+
+**⚠ The numbers below are HISTORICAL and no longer reflect the current dataset.** They were computed from `layer2_full_audit.20260829T181300.053055.jsonl` (fingerprint `8dca28fe7e5c5065…`), which was generated against a **previous** dataset fingerprint. The current dataset fingerprint is `b8bf3feb57ffcb23c…` (see `data/dataset_manifest.json`). These numbers are retained for historical reference only; they should not be cited as current system performance.
+
+| Metric | Historical Value |
+|--------|------------------|
+| Total records | 245 (122 settlement + 81 bank + 42 ledger) |
+| Layer 1 matched records | 86 of 245 (35.1%) — 43 decisions covering 120 scenarios |
+| Layer 1 precision | 100.00% (43/43 correct, deterministic) |
+| AI_AUTO_ACCEPTED | 11 — Layer 2 proposals with confidence ≥ 0.90, auto-accepted |
+| HUMAN_REVIEW | 18 — Layer 2 proposals with confidence 0.60–0.89, queued for review |
+| EXCEPTION | 130 — AI_RESPONSE_INVALID (91), NO_CANDIDATE (39) |
+| AI proposals routed | 29 records from 24 PROPOSAL_VALID outcomes (out of 27 in artifact; 3 lost to scenario dedup) |
 | Baseline match rate | 40.00% (48/120) |
 | Baseline precision | 75.00% (36/48 correct) |
+| AI precision / recall | See `data/day5_full_pipeline_report.json` (historical; not recomputed for canonical artifact) |
 
-The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.83% vs 40.00%) but never produces a false positive. The 96 "should have been caught" exception records represent the real-world workload that Layer 2 is designed to address. Under the current heavy rate-limiting, Layer 2 attempted only 3 of 42 residual scenarios with a real match, correctly proposing 2 of those 3 — the model quality is high when it runs, but infrastructure availability is the bottleneck.
+**Current partial numbers** (from `layer2_clean_audit.jsonl`, 45/77 scenarios, fingerprint `b8bf3feb…`): 26 PROPOSAL_VALID, 10 NO_PROPOSAL, 9 API_ERROR. The evaluation is incomplete — 32 scenarios have not been attempted and 9 failed on Groq rate limits. No headline-metrics table can be computed until the full 77/77 evaluation completes.
+
+The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.1% vs 40.00%) but never produces a false positive. The current canonical Layer 2 artifact contains 26 genuine Groq proposals (from 45 scenarios evaluated out of 77 residual scenarios). After deterministic deduplication in the loading code, these PROPOSAL_VALID outcomes route records to AI buckets via Layer 3 guardrails. The remaining residuals route to EXCEPTION via API_ERROR or NO_PROPOSAL outcomes — these represent the workload that a fully evaluated Layer 2 would address.
 
 ### AI-recall methodology
 
@@ -147,6 +156,20 @@ AI recall is reported as two numbers — **system-wide** and **attempted-only** 
 ### DUPLICATE scenario scoring
 
 DUPLICATE scenarios contain two same-source settlement records (e.g. duplicate settlement reports). Layer 2 proposing that these two records match each other is currently scored as a correct outcome. This is distinct from cross-source reconciliation (e.g. settlement-to-bank matching). The expected match IDs for DUPLICATE scenarios are the settlement-only records, not all member records. This behavior is intentional for the current evaluation — it treats duplicate detection as a valid Layer 2 capability alongside cross-source matching. Whether this should remain scored as correct or be separated into its own metric is a known open question.
+
+## Known Incidents
+
+### LATE-008: false accept on high-confidence proposal with weak financial evidence
+
+Scenario LATE-008 pairs a settlement record with a bank record that share the same amount (867000 paise) but have different order IDs and a 21-day date gap. A Groq proposal for this pair received confidence ≥ 0.90, which would have routed both records to `AI_AUTO_ACCEPTED` — a false accept. The root cause was that Layer 3's auto-accept gate only checked confidence threshold and same-source duplicate guardrails, without verifying that the proposal had sufficient financial evidence (matching amounts AND dates within a reasonable window). The fix added `_check_financial_evidence` (in `reconciliation/layer3.py`, line 85), which rejects auto-acceptance when date gap exceeds a configurable threshold even if the LLM assigns high confidence. The regression test `TestLate008Regression` (in `tests/unit/test_layer3_routing.py`, line 248) pins this: it constructs the exact LATE-008 record pair, feeds a confidence-0.90 proposal through `route()`, and asserts neither record lands in `AI_AUTO_ACCEPTED`.
+
+### Same-source duplicate overinclusion in Layer 2 proposals
+
+Layer 2 proposals sometimes included extra records beyond the minimal matching pair — for example, proposing that three same-source settlement records match each other when only two are warranted. This overinclusion could cause correct two-record matches to fail validation or produce false positives. The fix added `_check_same_source_duplicate_overinclusion` (in `reconciliation/proposal_validation.py`, line 64), which rejects proposals that propose matching more than two same-source records when a tighter two-record match exists. This guardrail is exercised by the existing test suite and by the guardrail-impact comparison in `scripts/run_full_clean_eval.py` (line 741), which quantifies how many proposals the guardrail diverts from `AI_AUTO_ACCEPTED` to `EXCEPTION`.
+
+### TPM vs TPD rate-limit misclassification
+
+During the Layer 2 evaluation, Groq returned 429 errors for both tokens-per-minute (TPM) and tokens-per-day (TPD) rate limits. The original error classifier in `reconciliation/groq_provider.py` only checked the `type` field of the error body (e.g. `"tokens"`), which is the same for both TPM and TPD errors. This caused TPD daily-quota exhaustion to be classified as `"transient"` instead of `"quota_exhausted"`, triggering futile retries that wasted API budget. The fix (`_classify_api_error` at `reconciliation/groq_provider.py`, line 65) now checks both the `type` and `code` fields, and inspects the error message for daily-quota markers ("per day", "TPD", "tokens per day") via `_has_daily_quota_marker`. When a `rate_limit_exceeded` code is paired with a daily-quota marker, the error is classified as `"quota_exhausted"` and retries are suppressed. The tests `test_tpd_rate_limit_exceeded_classified_as_quota_exhausted` and `test_tpd_rate_limit_exceeded_not_unknown` (in `tests/unit/test_groq_provider.py`, lines 428 and 448) verify this behavior.
 
 ## Day 6 — API
 
@@ -218,9 +241,10 @@ The `BatchStore` interface is intentionally narrow — these changes are enginee
 
 Audit artifacts follow a clear lifecycle:
 
-- **Canonical artifact** (`data/layer2_full_audit.jsonl`): committed to git. Represents the most recent complete Layer 2 run. Always exactly one file.
-- **Archived artifacts** (`data/layer2_full_audit.{timestamp}.jsonl`): gitignored. Created by the `Auditor` archive lifecycle when a new run replaces the previous one. These are the only record of intermediate or failed runs (e.g. the Groq outage on 2026-08-29). Policy: keep all of them. They are small (47-78K each) and infrequent (one per run). If disk usage becomes a concern, delete the oldest archives manually — there is no automated cleanup.
-- **Evaluation reports** (`data/day5_full_pipeline_report.json`, `.md`): committed to git. Generated by the evaluation harness after each complete run.
+- **Active resumable partial artifact** (`data/layer2_clean_audit.jsonl`): untracked by git (not committed, not gitignored). The current in-progress evaluation state produced by a partial Groq run (45 of 77 scenarios evaluated as of 2026-09-02). It is the authoritative source for `--resume` operations and is wired as the `canonical_layer2_artifact` in the dataset manifest. Once all 77 scenarios are evaluated and the artifact is finalized, it becomes the **FINAL CANONICAL ARTIFACT**.
+- **Final canonical artifact** (`data/layer2_full_audit.jsonl`): committed to git as a 1-record stub (old fingerprint `8dca28fe…`). Does not currently exist on disk. When `scripts/run_layer2_full.py` completes a full 77/77 run, the output is promoted atomically from the `.tmp` sidecar to this path. Its SHA-256 hash is verified at load time.
+- **Historical artifacts** (`data/layer2_full_audit.20260829T181300.053055.jsonl`, `data/layer2_full_audit.legacy.jsonl`, and 9 other timestamped files): gitignored (pattern: `data/layer2_full_audit.*.jsonl`). These are the only record of intermediate or failed runs. Policy: keep all of them. They are small (47-78K each) and infrequent (one per run). If disk usage becomes a concern, delete the oldest archives manually — there is no automated cleanup.
+- **Historical evaluation report** (`data/day5_full_pipeline_report.json`, `.md`): committed to git. Generated on 2026-08-30 by the evaluation harness from a previous artifact version. Retained for historical reference only.
 - **Dataset manifest** (`data/dataset_manifest.json`): committed to git. Frozen fingerprint of the evaluation dataset.
 - **SQLite database** (`data/concord.db`): gitignored. Created by the API's `BatchStore`. Ephemeral — not backed up.
 

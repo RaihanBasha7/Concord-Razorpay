@@ -149,7 +149,7 @@ Omitting `bucket` returns all records.
       }
     },
     "layer2": {
-      "scenarios_processed": 0,
+      "residual_records_processed": 0,
       "outcomes_by_type": {}
     },
     "layer3_routing_composition": {

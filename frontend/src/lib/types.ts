@@ -97,7 +97,7 @@ export interface EvalReport {
     decisions_by_rule: Record<string, number>;
   };
   layer2: {
-    scenarios_processed: number;
+    residual_records_processed: number;
     outcomes_by_type: Record<string, number>;
   };
   layer3_routing_composition: Partial<Record<RoutingBucket, number>>;
@@ -106,6 +106,8 @@ export interface EvalReport {
     review: number;
   };
   layer2_mode: string;
+  demo_mode?: string;
+  demo_mode_note?: string;
 }
 
 export interface BatchEvalResponse {

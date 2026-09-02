@@ -127,7 +127,7 @@ export function Evaluation() {
                     <h3 className="text-sm font-semibold text-cream-100">Layer 2 — AI Reconstruction</h3>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <StatBlock label="Scenarios Processed" value={evalReport.layer2.scenarios_processed} />
+                    <StatBlock label="Residual Records" value={evalReport.layer2.residual_records_processed} />
                     <div>
                       <div className="text-xs text-cream-500/60 tracking-wide uppercase mb-1">Outcomes by Type</div>
                       {Object.keys(evalReport.layer2.outcomes_by_type).length > 0 ? (
