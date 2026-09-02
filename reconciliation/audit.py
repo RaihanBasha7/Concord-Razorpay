@@ -45,6 +45,7 @@ class AuditRecord:
     confidence: Optional[float]
     reason: str
     dataset_fingerprint: Optional[str] = None
+    diagnostic: Optional[str] = None
 
     def to_json(self) -> str:
         return json.dumps(asdict(self))
@@ -262,6 +263,7 @@ def make_audit_record(
     proposal: Optional[MatchProposal],
     reason: str,
     dataset_fingerprint: Optional[str] = None,
+    diagnostic: Optional[str] = None,
 ) -> AuditRecord:
     """Build a safe audit record from a resolved outcome.
 
@@ -269,6 +271,11 @@ def make_audit_record(
     the audit record was produced against. It carries no ground-truth labels or
     secrets and lets downstream evaluation verify the artifact matches the
     dataset in use.
+
+    ``diagnostic`` is an optional, sanitized error detail (produced by
+    ``safe_diagnostic()``) that aids post-hoc debugging.  It is never
+    required and defaults to None so that old artifacts lacking this field
+    remain valid.
     """
     confidence = proposal.confidence if proposal is not None else None
     proposal_payload = (
@@ -283,4 +290,5 @@ def make_audit_record(
         confidence=confidence,
         reason=reason,
         dataset_fingerprint=dataset_fingerprint,
+        diagnostic=diagnostic,
     )

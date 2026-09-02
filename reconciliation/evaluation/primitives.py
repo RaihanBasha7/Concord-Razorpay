@@ -8,6 +8,16 @@ RecordOutcome records produced by the orchestration layer.
 
 Zero denominators are represented explicitly as None rather than raising or
 inventing percentages.
+
+Tri-state evaluation semantics:
+
+  ai_correct = True   -> proposal correctness verified, correct
+  ai_correct = False  -> proposal correctness verified, incorrect
+  ai_correct = None   -> correctness cannot be determined (UNKNOWN)
+
+UNKNOWN must never silently become TP or FP.  Precision/recall functions
+must only count True and False observations; None is excluded from both
+the numerator and denominator.
 """
 from __future__ import annotations
 
@@ -138,6 +148,9 @@ class AiPrecisionAtThreshold:
     true_positives: int
     false_positives: int
     total: int
+    # Enriched fields for transparency
+    evaluated: int = 0  # Number with known correctness (True or False)
+    unknown: int = 0    # Number with unknown correctness (None)
 
 
 @dataclass(frozen=True)
@@ -147,6 +160,10 @@ class AiRecallResult:
     denominator: int
     recall_attempted: Optional[float] = None
     denominator_attempted: int = 0
+    # Enriched fields for transparency
+    evaluated_positives: int = 0   # Ground-truth positives with known correctness
+    incorrect_positives: int = 0   # Ground-truth positives verified incorrect
+    unevaluated_positives: int = 0 # Ground-truth positives not evaluated
 
 
 @dataclass(frozen=True)
@@ -213,15 +230,27 @@ def compute_ai_precision_at_threshold(
     outcomes: List[ScenarioOutcome],
     threshold: float,
 ) -> AiPrecisionAtThreshold:
+    """Compute precision at a confidence threshold.
+
+    Only scenarios where ai_correct is not None (i.e. correctness is known)
+    participate in the precision calculation.  UNKNOWN (None) observations
+    are excluded from both numerator and denominator.
+
+    Returns enriched fields: evaluated (known correctness), unknown (None).
+    """
     included = [o for o in outcomes if o.ai_confidence is not None and o.ai_confidence >= threshold]
-    true_positives = sum(1 for o in included if o.ai_correct)
-    false_positives = sum(1 for o in included if not o.ai_correct)
+    evaluated = [o for o in included if o.ai_correct is not None]
+    true_positives = sum(1 for o in evaluated if o.ai_correct is True)
+    false_positives = sum(1 for o in evaluated if o.ai_correct is False)
+    unknown = len(included) - len(evaluated)
     return AiPrecisionAtThreshold(
         threshold=threshold,
         precision=safe_ratio(true_positives, true_positives + false_positives),
         true_positives=true_positives,
         false_positives=false_positives,
         total=len(included),
+        evaluated=len(evaluated),
+        unknown=unknown,
     )
 
 
@@ -240,6 +269,9 @@ def compute_ai_recall(outcomes: List[ScenarioOutcome]) -> AiRecallResult:
       actually ran (``PROPOSAL_VALID``, ``NO_PROPOSAL``,
       ``VALIDATION_FAILED``).  This answers "how good is the model when
       it's actually asked" but must never replace the system-wide number.
+
+    UNKNOWN (ai_correct=None) observations are excluded from the numerator
+    and reported separately as unevaluated_positives.
     """
     residuals_with_real_match = [
         o for o in outcomes
@@ -251,13 +283,19 @@ def compute_ai_recall(outcomes: List[ScenarioOutcome]) -> AiRecallResult:
         o for o in residuals_with_real_match
         if o.layer2_outcome_type in attempted_outcomes
     ]
-    true_positives = sum(1 for o in residuals_with_real_match if o.ai_correct)
+    true_positives = sum(1 for o in residuals_with_real_match if o.ai_correct is True)
+    incorrect = sum(1 for o in residuals_with_real_match if o.ai_correct is False)
+    unevaluated = sum(1 for o in residuals_with_real_match if o.ai_correct is None)
+    evaluated = true_positives + incorrect
     return AiRecallResult(
         recall=safe_ratio(true_positives, len(residuals_with_real_match)),
         true_positives=true_positives,
         denominator=len(residuals_with_real_match),
         recall_attempted=safe_ratio(true_positives, len(attempted_with_real_match)),
         denominator_attempted=len(attempted_with_real_match),
+        evaluated_positives=evaluated,
+        incorrect_positives=incorrect,
+        unevaluated_positives=unevaluated,
     )
 
 

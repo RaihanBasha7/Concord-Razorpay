@@ -1,0 +1,306 @@
+{
+  "evaluation_type": "PARTIAL EVALUATION",
+  "run_timestamp": "2026-09-01T09:50:18.167347+00:00",
+  "dataset": {
+    "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+    "schema_version": "1.0",
+    "dataset_seed": 42,
+    "total_records": 245,
+    "total_scenarios": 120,
+    "settlement_rows": 122,
+    "bank_rows": 81,
+    "ledger_rows": 42,
+    "leakage_free": true
+  },
+  "layer1_baseline": {
+    "matched_records": 43,
+    "residual_records": 159,
+    "residual_scenarios": 77,
+    "match_rate_records": 0.17551020408163265,
+    "match_rate_scenarios": 0.35833333333333334,
+    "deterministic_precision": 1.0,
+    "time_ms": 1.027700025588274
+  },
+  "layer2_execution": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-20b",
+    "attempted": 77,
+    "successful": 64,
+    "api_errors": 13,
+    "quota_exhausted": 0,
+    "transient_errors": 13,
+    "timeout_errors": 0,
+    "unknown_errors": 0,
+    "valid_proposals": 48,
+    "no_proposals": 16,
+    "validation_failed": 0,
+    "error_details": [
+      {
+        "scenario_id": "REFD-005",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6069, Requested 2696. Please try again in 5.7375s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "REFD-010",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5832, Requested 2653. Please try again in 3.637499999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "RND-009",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6050, Requested 2676. Please try again in 5.445s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "RND-012",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5910, Requested 2663. Please try again in 4.297499999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-002",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6532, Requested 2643. Please try again in 8.8125s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-003",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5871, Requested 2706. Please try again in 4.3275s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-004",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6719, Requested 2698. Please try again in 10.6275s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-007",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6882, Requested 2681. Please try again in 11.7225s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-008",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6788, Requested 2680. Please try again in 11.01s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "SPLT-009",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7828, Requested 2670. Please try again in 18.735s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "UNQ-003",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5761, Requested 2534. Please try again in 2.2125s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "UNQ-008",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7784, Requested 2515. Please try again in 17.2425s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      {
+        "scenario_id": "UNQ-009",
+        "error_type": "transient",
+        "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5896, Requested 2725. Please try again in 4.6575s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      }
+    ]
+  },
+  "layer2_quality": {
+    "ai_precision_at_090": {
+      "threshold": 0.9,
+      "precision": 1.0,
+      "true_positives": 13,
+      "false_positives": 0,
+      "total": 13
+    },
+    "ai_precision_at_075": {
+      "threshold": 0.75,
+      "precision": 1.0,
+      "true_positives": 22,
+      "false_positives": 0,
+      "total": 22
+    },
+    "ai_precision_at_060": {
+      "threshold": 0.6,
+      "precision": 0.8958333333333334,
+      "true_positives": 43,
+      "false_positives": 5,
+      "total": 48
+    },
+    "ai_recall": {
+      "recall_system_wide": 0.7142857142857143,
+      "true_positives": 30,
+      "denominator": 42,
+      "recall_attempted_only": 0.8823529411764706,
+      "denominator_attempted": 34
+    }
+  },
+  "layer3_routing": {
+    "thresholds": {
+      "auto_accept": 0.9,
+      "human_review": 0.6
+    },
+    "composition": {
+      "HUMAN_REVIEW": 40,
+      "EXCEPTION": 97,
+      "DETERMINISTIC_MATCH": 86,
+      "AI_AUTO_ACCEPTED": 22
+    },
+    "false_accepts": {
+      "count": 0,
+      "rate": 0.0,
+      "total_auto_accepted": 22
+    },
+    "false_accept_scenarios": []
+  },
+  "edge_case_breakdown": {
+    "FEE_DEDUCTED": {
+      "count": 12,
+      "l1_matched": 0,
+      "l2_attempted": 12,
+      "l2_successful": 12,
+      "l2_proposals_valid": 12,
+      "l2_correct": 11,
+      "auto_accept": 0,
+      "needs_review": 12,
+      "exception": 0,
+      "has_real_match": 12
+    },
+    "DUPLICATE": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 10,
+      "l2_proposals_valid": 10,
+      "l2_correct": 10,
+      "auto_accept": 4,
+      "needs_review": 6,
+      "exception": 0,
+      "has_real_match": 10
+    },
+    "TRUE_ORPHAN": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 7,
+      "l2_proposals_valid": 4,
+      "l2_correct": 0,
+      "auto_accept": 0,
+      "needs_review": 4,
+      "exception": 6,
+      "has_real_match": 0
+    },
+    "EXACT_MATCH": {
+      "count": 20,
+      "l1_matched": 20,
+      "l2_attempted": 0,
+      "l2_successful": 0,
+      "l2_proposals_valid": 0,
+      "l2_correct": 0,
+      "auto_accept": 0,
+      "needs_review": 0,
+      "exception": 0,
+      "has_real_match": 20
+    },
+    "PARTIAL_REFUND": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 8,
+      "l2_proposals_valid": 5,
+      "l2_correct": 5,
+      "auto_accept": 0,
+      "needs_review": 5,
+      "exception": 5,
+      "has_real_match": 10
+    },
+    "SPLIT_SETTLEMENT": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 4,
+      "l2_proposals_valid": 4,
+      "l2_correct": 4,
+      "auto_accept": 4,
+      "needs_review": 0,
+      "exception": 6,
+      "has_real_match": 10
+    },
+    "INCONSISTENT_NARRATION": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 10,
+      "l2_proposals_valid": 1,
+      "l2_correct": 1,
+      "auto_accept": 0,
+      "needs_review": 1,
+      "exception": 9,
+      "has_real_match": 0
+    },
+    "ROUNDING_DIFFERENCE": {
+      "count": 13,
+      "l1_matched": 8,
+      "l2_attempted": 5,
+      "l2_successful": 3,
+      "l2_proposals_valid": 3,
+      "l2_correct": 3,
+      "auto_accept": 0,
+      "needs_review": 3,
+      "exception": 2,
+      "has_real_match": 8
+    },
+    "LATE_ARRIVING": {
+      "count": 10,
+      "l1_matched": 0,
+      "l2_attempted": 10,
+      "l2_successful": 10,
+      "l2_proposals_valid": 9,
+      "l2_correct": 9,
+      "auto_accept": 5,
+      "needs_review": 4,
+      "exception": 1,
+      "has_real_match": 0
+    },
+    "T_PLUS_DELAY": {
+      "count": 15,
+      "l1_matched": 15,
+      "l2_attempted": 0,
+      "l2_successful": 0,
+      "l2_proposals_valid": 0,
+      "l2_correct": 0,
+      "auto_accept": 0,
+      "needs_review": 0,
+      "exception": 0,
+      "has_real_match": 15
+    }
+  },
+  "artifact": {
+    "filename": "layer2_clean_audit.jsonl",
+    "sha256": "3c313d9892f6f8c6cec44fdc517868be78bdcdfdf001449bd32b047976edaff2",
+    "record_count": 77
+  },
+  "throughput": {
+    "layer1_time_ms": 1.027700025588274,
+    "layer2_total_time_ms": 1057445.162600081,
+    "total_time_ms": 1057446.1903001065
+  },
+  "safety_analysis": {
+    "false_accept_count": 0,
+    "false_accept_rate": 0.0,
+    "total_auto_accepted": 22,
+    "human_review_count": 40,
+    "exception_count": 97,
+    "correctly_refused": 42,
+    "should_have_been_caught": 55
+  },
+  "provider_failures": {
+    "total": 13,
+    "quota_exhausted": 0,
+    "transient": 13,
+    "timeout": 0,
+    "unknown": 0
+  },
+  "limitations": {
+    "api_errors": true,
+    "partial_evaluation": true,
+    "quota_limited": false
+  }
+}

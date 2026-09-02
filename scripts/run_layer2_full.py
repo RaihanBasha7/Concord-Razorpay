@@ -3,6 +3,7 @@ Full Layer 2 runner — processes ALL residual scenarios from the frozen dataset
 
 Creates a new provenance-verified JSONL artifact stamped with the current
 dataset fingerprint.  The artifact lifecycle:
+  * The active resumable partial artifact is `data/layer2_clean_audit.jsonl`.
   * If an existing artifact exists, it remains at the canonical path while
     the new run writes to a temporary sidecar file.
   * On successful completion the sidecar is atomically promoted to the final
@@ -28,21 +29,27 @@ import time
 from collections import Counter
 from pathlib import Path
 
-from reconciliation.audit import Auditor, make_audit_record
+from reconciliation.audit import Auditor
 from reconciliation.evaluation.dataset_fingerprint import (
-    compute_dataset_manifest,
     read_manifest,
     verify_dataset,
+)
+from reconciliation.evaluation.resume import (
+    CompletionStatus,
+    build_resume_summary,
+    filter_residuals_for_resume,
+    load_resume_state,
+    validate_finalization,
 )
 from reconciliation.groq_provider import (
     GroqProviderError,
     GroqStructuredProvider,
     safe_diagnostic,
 )
-from reconciliation.loader import load_normalized_records, load_residuals
+from reconciliation.loader import load_residuals
 from reconciliation.proposal_orchestration import ProposalOrchestrator
 from reconciliation.proposal_service import ProposalService
-from reconciliation.proposal_validation import ProposalOutcomeType
+from reconciliation.proposal_validation import ProposalOutcome, ProposalOutcomeType
 from reconciliation.runner import Day4Runner
 from reconciliation.retrieval import RetrievalConfig
 
@@ -87,26 +94,17 @@ _RETRYABLE_OUTCOMES = frozenset({
     ProposalOutcomeType.TIMEOUT,
 })
 
-_RATE_LIMIT_MARKERS = ("rate_limit", "Rate limit", "rate-limit", "429", "too many requests")
-
-
-def _is_rate_limit_outcome(outcome) -> bool:
-    """Return True if the outcome's diagnostic points to a rate-limit error."""
-    diagnostic = getattr(outcome, "diagnostic", "") or ""
-    reason = getattr(outcome, "reason", "") or ""
-    blob = diagnostic + " " + reason
-    return any(marker in blob for marker in _RATE_LIMIT_MARKERS)
-
 
 class PacedRetryingOrchestrator:
     """Wraps a ProposalOrchestrator with inter-call pacing and rate-limit retry.
 
     * A configurable delay is inserted *before* each call (except the first)
       to avoid saturating free-tier rate limits.
-    * If the outcome is API_ERROR or TIMEOUT and the diagnostic suggests a
-      rate-limit error, the call is retried with exponential backoff up to
+    * If the outcome is API_ERROR or TIMEOUT and the error classification is
+      "transient", the call is retried with exponential backoff up to
       ``max_retries`` times.
-    * Non-rate-limit errors are returned immediately (no retry).
+    * Classification "quota_exhausted" returns immediately (no retry).
+    * If error_classification is None (unclassified), no retry is performed.
     """
 
     def __init__(
@@ -131,11 +129,19 @@ class PacedRetryingOrchestrator:
 
         outcome = self._orchestrator.resolve(case, retrieval_result)
 
-        # Rate-limit retry with exponential backoff
+        # Daily token quota exhaustion is a distinct failure mode from a
+        # short-lived rate-limit.  When the daily quota is hit, retrying
+        # within seconds or minutes is futile; return immediately.
+        if (
+            outcome.outcome in _RETRYABLE_OUTCOMES
+            and outcome.error_classification == "quota_exhausted"
+        ):
+            return outcome
+
         retries = 0
         while (
             outcome.outcome in _RETRYABLE_OUTCOMES
-            and _is_rate_limit_outcome(outcome)
+            and outcome.error_classification == "transient"
             and retries < self._max_retries
         ):
             retries += 1
@@ -225,16 +231,17 @@ def main() -> int:
         action="store_true",
         default=False,
         help=(
-            "Resume from an interrupted run.  If a .tmp sidecar exists with"
-            " already-completed scenarios, skips those and continues from"
-            " where the last run left off.  Without this flag, any existing"
-            " sidecar is discarded and the run starts from scratch."
+            "Resume from the active resumable partial artifact "
+            "(`data/layer2_clean_audit.jsonl`).  Skips completed scenarios, "
+            "retries failed ones, and runs missing scenarios.  Without this "
+            "flag, any existing sidecar is discarded and the run starts from "
+            "scratch."
         ),
     )
     args = parser.parse_args()
 
     data_dir = Path("data")
-    artifact_path = data_dir / "layer2_full_audit.jsonl"
+    artifact_path = data_dir / "layer2_clean_audit.jsonl"
     sidecar_path = Path(str(artifact_path) + ".tmp")
 
     # ── 1. Verify frozen dataset ──────────────────────────────────────
@@ -260,6 +267,24 @@ def main() -> int:
     print(f"  Schema version: {manifest.schema_version}")
     print(f"  Dataset seed: {manifest.dataset_seed}")
 
+    # ── 1b. Validate active resumable artifact ────────────────────────
+    if artifact_path.exists():
+        from reconciliation.evaluation.resume import validate_resume_artifact
+        residuals_for_validation = load_residuals(data_dir)
+        validation_errors = validate_resume_artifact(
+            artifact_path,
+            residuals_for_validation,
+            fingerprint,
+        )
+        if validation_errors:
+            print("\nERROR: Active resumable artifact failed validation:")
+            for err in validation_errors:
+                print(f"  - {err}")
+            return 1
+        print(f"\nActive resumable artifact validated: {artifact_path.name}")
+    else:
+        print(f"\nNo active resumable artifact found. Fresh run will start from scratch.")
+
     # ── 2. Validate API key ───────────────────────────────────────────
     provider = GroqStructuredProvider()
     if not _validate_api_key(provider):
@@ -268,52 +293,43 @@ def main() -> int:
     # ── 3. Load residuals and count expected scenarios ─────────────────
     residuals = load_residuals(data_dir)
     expected_count = len(residuals)
+    expected_scenario_ids = [r.scenario_id for r in residuals]
     print(f"\nExpected residual scenarios: {expected_count}")
 
     # ── 4. Detect incomplete sidecar from prior run ──────────────────
     do_resume = args.resume
-    completed_count = 0
+    resume_state = load_resume_state(artifact_path)
+    summary = build_resume_summary(resume_state) if resume_state else None
 
-    if sidecar_path.exists() and sidecar_path.stat().st_size > 0:
-        completed_count = Auditor._count_valid_records(sidecar_path)
-        if completed_count > 0:
-            if not do_resume:
-                print(
-                    f"\nWARNING: Found incomplete sidecar with "
-                    f"{completed_count} completed scenarios from a prior run."
-                )
-                print(
-                    "  Use --resume to continue from where it left off,"
-                    " or the sidecar will be discarded."
-                )
-            else:
-                print(
-                    f"\nResuming from prior run: {completed_count}/"
-                    f"{expected_count} scenarios already completed."
-                )
-        else:
-            # Sidecar exists but has no valid records (only corrupt data)
-            if do_resume:
-                print(
-                    "\nWARNING: --resume was passed but the existing sidecar"
-                    " contains no valid records. Starting fresh."
-                )
-            completed_count = 0
-            do_resume = False
+    if summary and summary.total_scenarios > 0:
+        completed_count = summary.completed
+        failed_count = summary.failed
+        missing_count = summary.missing
+        print(
+            f"\nResume state loaded: {completed_count} completed, "
+            f"{failed_count} failed, {missing_count} missing "
+            f"(total tracked: {summary.total_scenarios})"
+        )
+        if not do_resume:
+            print(
+                "\nWARNING: Found incomplete sidecar with prior run state."
+            )
+            print("  Use --resume to continue, or the sidecar will be discarded.")
     else:
+        completed_count = 0
+        failed_count = 0
+        missing_count = 0
         if do_resume:
             print(
-                "\nWARNING: --resume was passed but no incomplete sidecar"
-                " exists. Starting fresh."
+                "\nWARNING: --resume was passed but no prior run state found."
             )
             do_resume = False
 
     remaining_count = expected_count - completed_count
 
-    if do_resume and remaining_count == 0:
+    if do_resume and remaining_count == 0 and failed_count == 0:
         print("\nAll scenarios already completed. Nothing to do.")
         print("Re-running validation against the existing sidecar...")
-        # The sidecar is already complete — validate and promote it.
         auditor = Auditor(
             artifact_path,
             archive_existing=True,
@@ -329,12 +345,40 @@ def main() -> int:
         print("Sidecar validated and promoted successfully.")
         return 0
 
+    if do_resume:
+        skip, retry, run = filter_residuals_for_resume(residuals, resume_state)
+        active_residuals = retry + run
+        remaining_count = len(active_residuals)
+        print(
+            f"\nResume plan: skip {len(skip)}, retry {len(retry)}, "
+            f"run {len(run)} (total active: {remaining_count})"
+        )
+    else:
+        active_residuals = residuals
+
     # ── 5. Run Layer 2 against remaining residuals ────────────────────
     print(f"\n{'=' * 60}")
-    print(f"Processing {remaining_count} scenarios" + (f" (offset {completed_count})" if do_resume else "") + "...")
+    print(
+        f"Processing {remaining_count} scenarios"
+        + (f" (resume mode)" if do_resume else "")
+        + "..."
+    )
     print(f"  Inter-call delay: {args.delay:.1f}s")
     print(f"  Rate-limit retries: {args.max_retries} (backoff base: {args.backoff_base:.0f}s)")
     print(f"{'=' * 60}\n")
+
+    # On resume, pre-populate the sidecar with existing artifact records
+    # so that finalize() sees the full expected record count.
+    if do_resume and artifact_path.exists():
+        if not sidecar_path.exists():
+            with artifact_path.open("r", encoding="utf-8") as src:
+                with sidecar_path.open("w", encoding="utf-8") as dst:
+                    for line in src:
+                        dst.write(line)
+            print(
+                f"\nPre-populated sidecar with {completed_count} existing records "
+                f"from {artifact_path.name}."
+            )
 
     auditor = Auditor(
         artifact_path,
@@ -349,7 +393,6 @@ def main() -> int:
             f" ({completed_count}) and Auditor init"
             f" ({auditor.resume_count})."
         )
-        remaining_count = expected_count - auditor.resume_count
 
     service = ProposalService(provider)
     base_orchestrator = ProposalOrchestrator(service)
@@ -364,10 +407,11 @@ def main() -> int:
     runner = Day4Runner(
         data_dir=data_dir,
         orchestrator=orchestrator,
-        limit=remaining_count,
+        limit=remaining_count if do_resume else expected_count,
         auditor=auditor,
         retrieval_config=RetrievalConfig(),
-        start_offset=auditor.resume_count,
+        start_offset=0 if do_resume else 0,
+        resume_state_path=str(artifact_path) if do_resume else None,
     )
 
     summary = runner.run()
@@ -388,6 +432,20 @@ def main() -> int:
     if not artifact_path.exists():
         print("ERROR: Artifact file not created.")
         return 1
+
+    # Finalization validation
+    finalization_errors = validate_finalization(
+        state=resume_state if resume_state else load_resume_state(artifact_path),
+        expected_scenario_ids=expected_scenario_ids,
+        expected_fingerprint=fingerprint,
+        artifact_path=artifact_path,
+    )
+    if finalization_errors:
+        print("ERROR: Finalization validation failed:")
+        for err in finalization_errors:
+            print(f"  - {err}")
+        return 1
+    print("Finalization validation: PASSED")
 
     records = []
     with artifact_path.open("r", encoding="utf-8") as f:

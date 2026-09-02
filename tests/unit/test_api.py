@@ -546,10 +546,10 @@ class TestEvalRetrieval:
         batch_id = _create_batch(client)
         eval_data = client.get(f"/batches/{batch_id}/eval").json()["eval"]
         l2 = eval_data["layer2"]
-        assert "scenarios_processed" in l2
+        assert "residual_records_processed" in l2
         assert "outcomes_by_type" in l2
         # With the noop orchestrator all outcomes are NO_PROPOSAL.
-        assert l2["outcomes_by_type"].get("NO_PROPOSAL", 0) == l2["scenarios_processed"]
+        assert l2["outcomes_by_type"].get("NO_PROPOSAL", 0) == l2["residual_records_processed"]
 
     def test_eval_has_routing_composition(self, client: TestClient):
         batch_id = _create_batch(client)
@@ -602,7 +602,7 @@ class TestLayer2Mode:
         go to EXCEPTION/NO_CANDIDATE."""
         batch_id = _create_batch(client)
         l2 = client.get(f"/batches/{batch_id}/eval").json()["eval"]["layer2"]
-        assert l2["scenarios_processed"] == 0
+        assert l2["residual_records_processed"] == 0
         assert l2["outcomes_by_type"] == {}
 
     def test_layer2_skipped_with_data(self, client: TestClient):
@@ -632,7 +632,7 @@ class TestLayer2Mode:
         eval_data = client.get(f"/batches/{batch_id}/eval").json()["eval"]
         assert eval_data["layer2_mode"] == "not_executed"
         # Layer 2 is skipped in the API pipeline; no scenarios processed.
-        assert eval_data["layer2"]["scenarios_processed"] == 0
+        assert eval_data["layer2"]["residual_records_processed"] == 0
         assert eval_data["layer2"]["outcomes_by_type"] == {}
 
 
@@ -826,7 +826,7 @@ class TestResidualConstructionCorrectness:
         """Without an orchestrator, no Layer 2 scenarios are processed."""
         batch_id = _create_batch(client)
         eval_data = client.get(f"/batches/{batch_id}/eval").json()["eval"]
-        assert eval_data["layer2"]["scenarios_processed"] == 0
+        assert eval_data["layer2"]["residual_records_processed"] == 0
         assert eval_data["layer2"]["outcomes_by_type"] == {}
 
     def test_layer2_skipped(self, client: TestClient):
@@ -859,7 +859,7 @@ class TestResidualConstructionCorrectness:
             f"/batches/{batch_id}/eval"
         ).json()["eval"]
         # Layer 2 is not executed in the API pipeline.
-        assert eval_data["layer2"]["scenarios_processed"] == 0
+        assert eval_data["layer2"]["residual_records_processed"] == 0
         assert eval_data["layer2"]["outcomes_by_type"] == {}
 
 
@@ -1316,7 +1316,7 @@ class TestEndToEndIntegration:
         ).json()["eval"]
         assert eval_data["total_records"] == 4
         assert eval_data["layer1"]["matched_records"] == 2
-        assert eval_data["layer2"]["scenarios_processed"] == 0
+        assert eval_data["layer2"]["residual_records_processed"] == 0
         assert eval_data["layer2_mode"] == "not_executed"
 
         # 6. Audit: every record has an audit entry

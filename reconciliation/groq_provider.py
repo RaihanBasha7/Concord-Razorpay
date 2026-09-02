@@ -57,35 +57,74 @@ _PERMANENT_ERROR_TYPES = frozenset(
 )
 
 _RATE_LIMIT_ERROR_TYPES = frozenset({"rate_limit_error"})
+_RATE_LIMIT_ERROR_CODES = frozenset({"rate_limit_exceeded"})
+_DAILY_QUOTA_MESSAGE_MARKERS = ("per day", "TPD", "tokens per day")
 
 
 def _classify_api_error(exc: APIError) -> str:
-    """Classify a Groq APIError as transient, permanent, or unknown.
+    """Classify a Groq APIError as transient, quota_exhausted, permanent, or unknown.
 
     Uses the structured ``body`` attribute (server response) when available.
+    Checks both the ``type`` and ``code`` fields so that errors using
+    non-standard type values (e.g. ``"tokens"``) with a known rate-limit
+    code (e.g. ``"rate_limit_exceeded"``) are correctly classified.
+
+    A ``code`` of ``"rate_limit_exceeded"`` combined with a daily-quota
+    message marker (see ``_DAILY_QUOTA_MESSAGE_MARKERS``) classifies as
+    ``"quota_exhausted"`` instead of ``"transient"``, because retrying
+    within seconds or minutes is futile when the daily token budget is hit.
+
     Never inspects or logs API keys, Authorization headers, or request payloads.
     """
     body = getattr(exc, "body", None) or {}
     error_info = body.get("error") if isinstance(body, dict) else None
     if isinstance(error_info, dict):
         error_type = error_info.get("type", "")
+        error_code = error_info.get("code", "")
         if error_type in _TRANSIENT_ERROR_TYPES:
+            if (
+                error_code in _RATE_LIMIT_ERROR_CODES
+                and _has_daily_quota_marker(error_info)
+            ):
+                return "quota_exhausted"
+            return "transient"
+        if error_code in _RATE_LIMIT_ERROR_CODES:
+            if _has_daily_quota_marker(error_info):
+                return "quota_exhausted"
             return "transient"
         if error_type in _PERMANENT_ERROR_TYPES:
             return "permanent"
     return "unknown"
 
 
+def _has_daily_quota_marker(error_info: dict) -> bool:
+    """Return True if the error body message contains a daily-quota marker."""
+    message = error_info.get("message", "")
+    return any(marker in message for marker in _DAILY_QUOTA_MESSAGE_MARKERS)
+
+
 def _is_rate_limit_api_error(exc: APIError) -> bool:
     """Return True if the API error is a rate-limit error.
 
-    Rate-limit errors are retried at the orchestrator level (with proper
-    backoff), not at the provider level, to avoid stacking retries.
+    Checks both ``type`` (e.g. ``"rate_limit_error"``) and ``code``
+    (e.g. ``"rate_limit_exceeded"``) so that daily-quota exhaustion
+    errors that use ``type="tokens"`` with ``code="rate_limit_exceeded"``
+    are also detected.
+
+    The caller (``GroqStructuredProvider.complete_structured``) uses this
+    to decide whether to skip the provider-level short retry; the
+    orchestrator reads ``GroqProviderError.classification`` for the
+    higher-level transient-vs-quota_exhausted distinction.
     """
     body = getattr(exc, "body", None) or {}
     error_info = body.get("error") if isinstance(body, dict) else None
     if isinstance(error_info, dict):
-        return error_info.get("type", "") in _RATE_LIMIT_ERROR_TYPES
+        error_type = error_info.get("type", "")
+        error_code = error_info.get("code", "")
+        return (
+            error_type in _RATE_LIMIT_ERROR_TYPES
+            or error_code in _RATE_LIMIT_ERROR_CODES
+        )
     return False
 
 
@@ -119,8 +158,10 @@ class GroqProviderError(RuntimeError):
     Clear, infrastructure-level error from the Groq provider boundary.
 
     Carries optional ``error_type`` (the underlying provider exception class
-    name) and ``safe_detail`` (a sanitized message) for local diagnostics. The
-    audit trail and outcome ``reason`` remain safe; ``safe_diagnostic`` is the
+    name), ``safe_detail`` (a sanitized message) for local diagnostics, and
+    ``classification`` (one of "transient", "quota_exhausted", "permanent",
+    "timeout", or "unknown") set by ``_classify_api_error``.  The audit
+    trail and outcome ``reason`` remain safe; ``safe_diagnostic`` is the
     only path that exposes this detail, and it redacts secrets.
     """
 
@@ -130,14 +171,19 @@ class GroqProviderError(RuntimeError):
         *,
         error_type: Optional[str] = None,
         safe_detail: Optional[str] = None,
+        classification: str = "unknown",
     ) -> None:
         super().__init__(message)
         self.error_type = error_type
         self.safe_detail = safe_detail
+        self.classification = classification
 
 
 class GroqTimeoutError(GroqProviderError):
     """Provider timeout; treated distinctly from a generic API error."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:
+        super().__init__(message, classification="timeout", **kwargs)
 
 
 DEFAULT_MODEL = "openai/gpt-oss-20b"
@@ -261,6 +307,7 @@ class GroqStructuredProvider(StructuredCompletionProvider):
                     f"Groq API error ({classification}): {exc}",
                     error_type=f"{type(exc).__name__}[{classification}]",
                     safe_detail=str(exc),
+                    classification=classification,
                 ) from exc
             except Exception as exc:  # noqa: BLE001 - surface as provider error
                 raise GroqProviderError(

@@ -25,6 +25,7 @@ from reconciliation.groq_provider import (
     GroqTimeoutError,
     StructuredCompletionProvider,
     _classify_api_error,
+    _is_rate_limit_api_error,
 )
 from reconciliation.layer2 import Layer2Case
 from reconciliation.proposal import PROPOSAL_JSON_SCHEMA, MatchProposal
@@ -424,6 +425,59 @@ class TestApiErrorClassification:
         )
         assert _classify_api_error(exc) == "unknown"
 
+    def test_tpd_rate_limit_exceeded_classified_as_quota_exhausted(self):
+        """Daily token quota errors use type='tokens' with code='rate_limit_exceeded'
+        and a message containing a daily-quota marker.
+
+        These must be classified as 'quota_exhausted', not 'transient' or 'unknown'.
+        """
+        exc = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "tokens",
+                    "code": "rate_limit_exceeded",
+                    "message": "...on tokens per day (TPD): Limit 200000, Used 199719, Requested 1245.",
+                }
+            },
+        )
+        assert _classify_api_error(exc) == "quota_exhausted"
+        assert _is_rate_limit_api_error(exc) is True
+
+    def test_tpd_rate_limit_exceeded_not_unknown(self):
+        """Regression: TPD errors must not fall through to 'unknown'."""
+        exc = APIError(
+            "tokens per day",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "tokens",
+                    "code": "rate_limit_exceeded",
+                    "message": "Limit 200000 per day (TPD).",
+                }
+            },
+        )
+        assert _classify_api_error(exc) == "quota_exhausted"
+
+    def test_rate_limit_exceeded_without_quota_marker_is_transient(self):
+        """Generic rate_limit_exceeded WITHOUT a daily-quota message marker
+        should classify as 'transient' (short-lived, worth retrying).
+        """
+        exc = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "tokens",
+                    "code": "rate_limit_exceeded",
+                    "message": "Too many requests, try again later.",
+                }
+            },
+        )
+        assert _classify_api_error(exc) == "transient"
+        assert _is_rate_limit_api_error(exc) is True
+
 
 class TestProviderRetryTransientApiError:
     def test_rate_limit_raises_immediately_no_provider_retry(self):
@@ -628,3 +682,70 @@ class TestPromptBoundary:
         result = builder.build(case, retrieval)
         assert "empty" in result.user_prompt.lower()
         assert "proposed_match_ids" in result.user_prompt
+
+
+class TestEndToEndClassificationWiring:
+    """Integration test: GroqProviderError raised by a mocked provider flows
+    through ProposalOrchestrator.resolve() and the classification attribute
+    is wired to ProposalOutcome.error_classification end-to-end.
+    """
+
+    def test_tpd_quota_exhausted_flows_to_outcome(self):
+        from reconciliation.proposal_orchestration import ProposalOrchestrator
+        from reconciliation.proposal_service import ProposalService
+        from reconciliation.proposal_validation import ProposalOutcomeType
+
+        # Use the real GroqStructuredProvider boundary to exercise the full path
+        # from raw APIError -> _classify_api_error -> GroqProviderError.classification
+        # -> ProposalOrchestrator -> ProposalOutcome.error_classification.
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "tokens",
+                    "code": "rate_limit_exceeded",
+                    "message": "...on tokens per day (TPD): Limit 200000, Used 199719, Requested 1245.",
+                }
+            },
+        )
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                provider = GroqStructuredProvider()
+                orch = ProposalOrchestrator(ProposalService(provider))
+
+                case, retrieval = _make_case_and_retrieval()
+                outcome = orch.resolve(case, retrieval)
+
+        assert outcome.outcome == ProposalOutcomeType.API_ERROR
+        assert outcome.error_classification == "quota_exhausted"
+
+    def test_transient_rate_limit_flows_to_outcome(self):
+        from reconciliation.proposal_orchestration import ProposalOrchestrator
+        from reconciliation.proposal_service import ProposalService
+        from reconciliation.proposal_validation import ProposalOutcomeType
+
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.side_effect = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "rate_limit_error",
+                    "message": "Rate limit exceeded.",
+                }
+            },
+        )
+
+        with patch.dict("os.environ", {"GROQ_API_KEY": "test-key"}):
+            with patch("reconciliation.groq_provider.Groq", return_value=fake_client):
+                provider = GroqStructuredProvider()
+                orch = ProposalOrchestrator(ProposalService(provider))
+
+                case, retrieval = _make_case_and_retrieval()
+                outcome = orch.resolve(case, retrieval)
+
+        assert outcome.outcome == ProposalOutcomeType.API_ERROR
+        assert outcome.error_classification == "transient"

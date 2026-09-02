@@ -527,14 +527,29 @@ class TestArtifactBackedProvenance:
         dataset = generate_dataset(seed=42)
         config = MatcherConfig(amount_tolerance_paise=100, date_window_days=2)
 
+        # Find two same-source settlement records from a DUPLICATE scenario.
+        # These are residuals (Layer 1 only matches cross-source) and
+        # share identical amount/date, satisfying the Layer 3 evidence gate.
+        from reconciliation.domain.models import SourceType
+        dup_settlement_ids = None
+        for scen in dataset.scenarios:
+            if scen.category.value != "DUPLICATE":
+                continue
+            settlements = [s for s in scen.record_specs
+                           if s.source_type == SourceType.SETTLEMENT]
+            if len(settlements) == 2:
+                dup_settlement_ids = [_compute_record_id(s) for s in settlements]
+                break
+        assert dup_settlement_ids is not None, "No DUPLICATE scenario with 2 settlements found"
+
         artifact = tmp_path / "day4_audit.jsonl"
         artifact.write_text(
             json.dumps({
                 "correlation_id": "test-1",
                 "timestamp": "2026-08-27T11:00:00+00:00",
-                "presented_record_ids": ["SETTLEMENT-10b624fa0a35", "SETTLEMENT-36caf2e9edb6"],
+                "presented_record_ids": dup_settlement_ids,
                 "outcome": "PROPOSAL_VALID",
-                "proposal": {"proposed_match_ids": ["SETTLEMENT-10b624fa0a35", "SETTLEMENT-36caf2e9edb6"], "confidence": 0.9},
+                "proposal": {"proposed_match_ids": dup_settlement_ids, "confidence": 0.9},
                 "confidence": 0.9,
                 "reason": "Valid proposal from Layer 2 artifact.",
             }) + "\n",

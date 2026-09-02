@@ -22,7 +22,7 @@ from reconciliation.loader import load_normalized_records, load_residuals
 from reconciliation.proposal import MatchProposal
 from reconciliation.proposal_orchestration import ProposalOrchestrator
 from reconciliation.proposal_service import ProposalService
-from reconciliation.proposal_validation import ProposalOutcomeType
+from reconciliation.proposal_validation import ProposalOutcome, ProposalOutcomeType
 from reconciliation.retrieval import RetrievalResult
 from reconciliation.runner import DEFAULT_SAMPLE_LIMIT, Day4Runner
 from tests.conftest import make_record
@@ -429,4 +429,92 @@ class TestAuditDatasetFingerprint:
         drift_diags = [d for d in runner._fingerprint_diagnostics if "drift" in d]
         assert drift_diags
         assert runner._dataset_fingerprint is not None
+
+
+class TestPacedRetryingOrchestratorDailyQuota:
+    """Verify that daily token quota exhaustion is NOT retried and returns
+    immediately with a distinct reason string.
+    """
+
+    def test_tpd_error_no_retry_returns_immediately(self):
+        """A 'quota_exhausted' classification must not enter the retry loop."""
+        from scripts.run_layer2_full import PacedRetryingOrchestrator
+
+        tpd_outcome = ProposalOutcome(
+            outcome=ProposalOutcomeType.API_ERROR,
+            proposal=None,
+            presented_record_ids=("R1",),
+            reason="LLM provider returned an API error.",
+            error_classification="quota_exhausted",
+        )
+        mock_inner = MagicMock()
+        mock_inner.resolve.return_value = tpd_outcome
+
+        paced = PacedRetryingOrchestrator(
+            mock_inner, delay_seconds=0.0, max_retries=3, backoff_base=0.01,
+        )
+        case = MagicMock()
+        retrieval = MagicMock()
+
+        result = paced.resolve(case, retrieval)
+
+        # Inner orchestrator called exactly once (no retries).
+        assert mock_inner.resolve.call_count == 1
+        assert result.outcome == ProposalOutcomeType.API_ERROR
+        assert result.error_classification == "quota_exhausted"
+
+    def test_non_tpd_rate_limit_still_retries(self, tmp_path, monkeypatch):
+        """Short-lived transient errors (classification='transient') still retry."""
+        from scripts.run_layer2_full import PacedRetryingOrchestrator
+
+        # First call returns transient error, second call succeeds.
+        rate_limit_outcome = ProposalOutcome(
+            outcome=ProposalOutcomeType.API_ERROR,
+            proposal=None,
+            presented_record_ids=("R1",),
+            reason="LLM provider returned an API error.",
+            error_classification="transient",
+        )
+        ok_outcome = ProposalOutcome(
+            outcome=ProposalOutcomeType.NO_PROPOSAL,
+            proposal=None,
+            presented_record_ids=("R1",),
+            reason="No match.",
+            diagnostic="",
+        )
+        mock_inner = MagicMock()
+        mock_inner.resolve.side_effect = [rate_limit_outcome, ok_outcome]
+
+        paced = PacedRetryingOrchestrator(
+            mock_inner, delay_seconds=0.0, max_retries=2, backoff_base=0.01,
+        )
+        # Patch time.sleep to avoid actual waits.
+        with patch("scripts.run_layer2_full.time.sleep"):
+            result = paced.resolve(MagicMock(), MagicMock())
+
+        # The retry loop should have fired (call count > 1).
+        assert mock_inner.resolve.call_count == 2
+        assert result.outcome == ProposalOutcomeType.NO_PROPOSAL
+
+    def test_unclassified_outcome_not_retried(self):
+        """error_classification=None means unclassified — do not retry."""
+        from scripts.run_layer2_full import PacedRetryingOrchestrator
+
+        unclassified_outcome = ProposalOutcome(
+            outcome=ProposalOutcomeType.API_ERROR,
+            proposal=None,
+            presented_record_ids=("R1",),
+            reason="LLM provider returned an API error.",
+            error_classification=None,
+        )
+        mock_inner = MagicMock()
+        mock_inner.resolve.return_value = unclassified_outcome
+
+        paced = PacedRetryingOrchestrator(
+            mock_inner, delay_seconds=0.0, max_retries=3, backoff_base=0.01,
+        )
+        result = paced.resolve(MagicMock(), MagicMock())
+
+        assert mock_inner.resolve.call_count == 1
+        assert result.error_classification is None
 

@@ -16,6 +16,7 @@ import pytest
 
 from reconciliation.audit import Auditor, AuditRecord, make_audit_record
 from reconciliation.proposal_validation import ProposalOutcomeType
+from reconciliation.proposal import MatchProposal
 
 
 def _audit_line(correlation_id: str = "c1", outcome: str = "PROPOSAL_VALID") -> str:
@@ -952,3 +953,107 @@ class TestBackwardCompatibilityWithEvaluation:
             proposal=None, confidence=None, reason="test",
         ))
         assert auditor.write_count == 2
+
+
+# ===================================================================
+# Task 3: diagnostic field round-trip and backward compatibility
+# ===================================================================
+
+
+class TestDiagnosticField:
+    """Verify that the optional diagnostic field persists and round-trips
+    correctly through make_audit_record and JSONL serialization.
+    """
+
+    def test_make_audit_record_with_diagnostic(self):
+        """A record with a diagnostic string round-trips through JSON."""
+        proposal = MatchProposal(
+            proposed_match_ids=["A"], confidence=0.5, rationale="test"
+        )
+        record = make_audit_record(
+            correlation_id="diag-1",
+            presented_record_ids=["A"],
+            outcome="API_ERROR",
+            proposal=proposal,
+            reason="LLM provider returned an API error.",
+            diagnostic="tokens: ...on tokens per day (TPD): Limit 200000.",
+        )
+        assert record.diagnostic == "tokens: ...on tokens per day (TPD): Limit 200000."
+        serialized = record.to_json()
+        parsed = json.loads(serialized)
+        assert parsed["diagnostic"] == "tokens: ...on tokens per day (TPD): Limit 200000."
+
+    def test_make_audit_record_without_diagnostic(self):
+        """A record without a diagnostic (None) serializes correctly."""
+        record = make_audit_record(
+            correlation_id="no-diag",
+            presented_record_ids=["R1"],
+            outcome="PROPOSAL_VALID",
+            proposal=None,
+            reason="validated",
+        )
+        assert record.diagnostic is None
+        serialized = record.to_json()
+        parsed = json.loads(serialized)
+        assert parsed["diagnostic"] is None
+
+    def test_audit_record_with_diagnostic_round_trips_via_jsonl(self, tmp_path):
+        """A record with diagnostic round-trips through JSONL write/read."""
+        artifact = tmp_path / "audit.jsonl"
+        auditor = Auditor(artifact, archive_existing=True, atomic_write=True)
+        record = make_audit_record(
+            correlation_id="round-trip",
+            presented_record_ids=["R1"],
+            outcome="API_ERROR",
+            proposal=None,
+            reason="LLM provider returned an API error.",
+            diagnostic="rate_limit_error: Rate limit exceeded",
+        )
+        auditor.write(record)
+        auditor.finalize()
+
+        records = _read_artifact(artifact)
+        assert len(records) == 1
+        assert records[0]["diagnostic"] == "rate_limit_error: Rate limit exceeded"
+
+    def test_backward_compat_record_without_diagnostic_field(self, tmp_path):
+        """An old audit record missing the 'diagnostic' field is still valid."""
+        artifact = tmp_path / "audit.jsonl"
+        # Simulate an old artifact with no diagnostic field.
+        old_record = {
+            "correlation_id": "old-record",
+            "timestamp": "2026-08-29T00:00:00+00:00",
+            "presented_record_ids": ["R1"],
+            "outcome": "PROPOSAL_VALID",
+            "proposal": None,
+            "confidence": None,
+            "reason": "validated",
+            "dataset_fingerprint": None,
+        }
+        artifact.write_text(
+            json.dumps(old_record) + "\n", encoding="utf-8"
+        )
+
+        records = _read_artifact(artifact)
+        assert len(records) == 1
+        # Old records won't have 'diagnostic' key — that's fine.
+        assert "diagnostic" not in records[0]
+
+    def test_backward_compat_required_fields_still_valid(self):
+        """AuditRecord with diagnostic=None still has all required fields."""
+        record = AuditRecord(
+            correlation_id="compat",
+            timestamp="2026-08-29T00:00:00+00:00",
+            presented_record_ids=["R1"],
+            outcome="PROPOSAL_VALID",
+            proposal=None,
+            confidence=None,
+            reason="test",
+        )
+        assert record.diagnostic is None
+        serialized = record.to_json()
+        parsed = json.loads(serialized)
+        # All original required fields are present.
+        for field in ["correlation_id", "timestamp", "presented_record_ids",
+                      "outcome", "proposal", "confidence", "reason"]:
+            assert field in parsed

@@ -1,0 +1,370 @@
+{
+  "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+  "results": [
+    {
+      "scenario_id": "DUP-001",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 2883.271099999547
+    },
+    {
+      "scenario_id": "DUP-002",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 10239.33259997284
+    },
+    {
+      "scenario_id": "DUP-003",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.85,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12209.52200004831
+    },
+    {
+      "scenario_id": "DUP-004",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 13844.498099992052
+    },
+    {
+      "scenario_id": "DUP-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5976, Requested 2704. Please try again in 5.1s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 29821.20050000958
+    },
+    {
+      "scenario_id": "DUP-006",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 5139.620599977206
+    },
+    {
+      "scenario_id": "DUP-007",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12720.618600025773
+    },
+    {
+      "scenario_id": "DUP-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6105, Requested 2608. Please try again in 5.3475s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 29005.32110000495
+    },
+    {
+      "scenario_id": "DUP-009",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 6781.9036999717355
+    },
+    {
+      "scenario_id": "DUP-010",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 13634.283900028095
+    },
+    {
+      "scenario_id": "FEE-001",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 14460.047399974428
+    },
+    {
+      "scenario_id": "FEE-002",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 14357.447099988349
+    },
+    {
+      "scenario_id": "FEE-003",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 10878.563600010239
+    },
+    {
+      "scenario_id": "FEE-004",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.85,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 15584.678400016855
+    },
+    {
+      "scenario_id": "FEE-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6308, Requested 2658. Please try again in 7.245s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 31765.864000015426
+    },
+    {
+      "scenario_id": "FEE-006",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 7189.696799963713
+    },
+    {
+      "scenario_id": "FEE-007",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 13230.4376999964
+    },
+    {
+      "scenario_id": "FEE-008",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 13830.172099987976
+    },
+    {
+      "scenario_id": "FEE-009",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 15526.868099987041
+    },
+    {
+      "scenario_id": "FEE-010",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12367.556400015019
+    },
+    {
+      "scenario_id": "FEE-011",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 15367.670500010718
+    },
+    {
+      "scenario_id": "FEE-012",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6466, Requested 2574. Please try again in 7.8s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 36079.820800048765
+    },
+    {
+      "scenario_id": "LATE-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7857, Requested 2585. Please try again in 18.315s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 8619.638099975418
+    },
+    {
+      "scenario_id": "LATE-002",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 10881.587500043679
+    },
+    {
+      "scenario_id": "LATE-003",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 11387.407700007316
+    },
+    {
+      "scenario_id": "LATE-004",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.85,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 11182.618900027592
+    },
+    {
+      "scenario_id": "LATE-005",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.95,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 20705.9150999994
+    },
+    {
+      "scenario_id": "LATE-006",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 27212.32690004399
+    },
+    {
+      "scenario_id": "LATE-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6001, Requested 2582. Please try again in 4.3725s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 30280.068800027948
+    },
+    {
+      "scenario_id": "LATE-008",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 5343.477100017481
+    },
+    {
+      "scenario_id": "LATE-009",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.85,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 10758.415200049058
+    },
+    {
+      "scenario_id": "LATE-010",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12720.6060999888
+    },
+    {
+      "scenario_id": "NARR-001",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 31764.845099998638
+    },
+    {
+      "scenario_id": "NARR-002",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 5551.892299961764
+    },
+    {
+      "scenario_id": "NARR-003",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.2,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12003.130900033284
+    },
+    {
+      "scenario_id": "NARR-004",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 14970.456800016109
+    },
+    {
+      "scenario_id": "NARR-005",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.6,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 15968.847699987236
+    },
+    {
+      "scenario_id": "NARR-006",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 17867.751999991015
+    },
+    {
+      "scenario_id": "NARR-007",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 6584.358699969016
+    },
+    {
+      "scenario_id": "NARR-008",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 19845.181299955584
+    },
+    {
+      "scenario_id": "NARR-009",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.1,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 12490.070800005924
+    },
+    {
+      "scenario_id": "NARR-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6151, Requested 2605. Please try again in 5.67s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "transient",
+      "elapsed_ms": 31512.859900016338
+    },
+    {
+      "scenario_id": "REFD-001",
+      "outcome": "NO_PROPOSAL",
+      "confidence": 0.2,
+      "diagnostic": "",
+      "error_classification": null,
+      "elapsed_ms": 8379.163999983575
+    },
+    {
+      "scenario_id": "REFD-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[quota_exhausted]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198902, Requested 2816. Please try again in 12m22.176s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 4011.635800008662
+    },
+    {
+      "scenario_id": "REFD-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "diagnostic": "RateLimitError[quota_exhausted]: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01kp04kap9f0qr2e1esvqxf7gj` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198678, Requested 2588. Please try again in 9m6.911999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1933.3357999566942
+    }
+  ],
+  "stats": {
+    "ok": 36,
+    "error": 9
+  },
+  "total_attempted": 45
+}

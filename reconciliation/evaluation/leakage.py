@@ -9,6 +9,7 @@ from typing import List, Tuple
 from reconciliation.evaluation.dataset_generator import (
     EdgeCaseCategory,
     GroundTruthScenario,
+    LeakageReport,
     ScenarioRecordSpec,
     check_leakage,
 )

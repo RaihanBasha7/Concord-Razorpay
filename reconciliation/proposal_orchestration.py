@@ -63,6 +63,12 @@ class ProposalOrchestrator:
         retrieval_result: RetrievalResult,
     ) -> ProposalOutcome:
         presented_ids = list(self._presented_record_ids(case, retrieval_result))
+
+        # Build records_by_id for structural validation
+        records_by_id = {r.record_id: r for r in case.member_records}
+        for c in retrieval_result.candidates:
+            records_by_id.setdefault(c.record.record_id, c.record)
+
         try:
             proposal: MatchProposal = self._service.propose(case, retrieval_result)
         except GroqTimeoutError as exc:
@@ -72,6 +78,7 @@ class ProposalOrchestrator:
                 presented_record_ids=tuple(presented_ids),
                 reason="LLM provider request timed out.",
                 diagnostic=safe_diagnostic(exc),
+                error_classification=getattr(exc, "classification", None),
             )
         except GroqProviderError as exc:
             return ProposalOutcome(
@@ -80,6 +87,7 @@ class ProposalOrchestrator:
                 presented_record_ids=tuple(presented_ids),
                 reason="LLM provider returned an API error.",
                 diagnostic=safe_diagnostic(exc),
+                error_classification=getattr(exc, "classification", None),
             )
 
-        return validate_proposal(proposal, presented_ids)
+        return validate_proposal(proposal, presented_ids, records_by_id=records_by_id)

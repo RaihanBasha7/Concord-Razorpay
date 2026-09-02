@@ -144,11 +144,11 @@ class TestAuditExcludesDiagnosticAndSecrets:
         assert FAKE_KEY not in blob
         assert "[REDACTED]" not in blob
         assert "AuthenticationError" not in blob
-        # ensure no diagnostic field leaked into audit JSON.
+        # When no diagnostic is provided, the field defaults to None.
         parsed = json.loads(blob)
-        assert "diagnostic" not in parsed
+        assert parsed.get("diagnostic") is None
 
-    def test_diagnostic_in_outcome_not_written_to_audit(self):
+    def test_diagnostic_in_outcome_written_to_audit_without_secrets(self):
         from reconciliation.groq_provider import StructuredCompletionProvider
 
         class FailingProvider(StructuredCompletionProvider):
@@ -179,11 +179,15 @@ class TestAuditExcludesDiagnosticAndSecrets:
         assert summary.attempted == 1
         # Diagnostic available in summary for CLI.
         assert any(FAKE_KEY not in d and "AuthenticationError" in d for d in summary.diagnostics)
-        # But audit record JSON contains neither secret nor diagnostic.
+        # Audit record JSON must not contain raw secrets.
         for rec in cap.records:
             blob = rec.to_json()
             assert FAKE_KEY not in blob
-            assert "AuthenticationError" not in blob
+            # The sanitized diagnostic IS persisted now (intentionally),
+            # but it must never contain raw secret material.
+            parsed = json.loads(blob)
+            if parsed.get("diagnostic"):
+                assert FAKE_KEY not in parsed["diagnostic"]
 
 
 def test_provider_error_type_captured_from_groq_exception():

@@ -1,0 +1,650 @@
+{
+  "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+  "run_timestamp": "2026-09-01T11:05:55.530081+00:00",
+  "results": [
+    {
+      "scenario_id": "DUP-001",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.7,
+      "proposed_match_ids": [
+        "SETTLEMENT-577f8d4641cd",
+        "SETTLEMENT-42fd3d04aaa4"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 3651.3988999649882
+    },
+    {
+      "scenario_id": "DUP-002",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "proposed_match_ids": [
+        "SETTLEMENT-ee51962fe68b",
+        "SETTLEMENT-a753fbdd63d7"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 2454.1934999870136
+    },
+    {
+      "scenario_id": "DUP-003",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.8,
+      "proposed_match_ids": [
+        "SETTLEMENT-47800a1bd5c1",
+        "SETTLEMENT-d9b7647689b8"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 2453.381100029219
+    },
+    {
+      "scenario_id": "DUP-004",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "proposed_match_ids": [
+        "SETTLEMENT-440ed69e443b",
+        "SETTLEMENT-5c5bb71fd4c9"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 2779.0738999610767
+    },
+    {
+      "scenario_id": "DUP-005",
+      "outcome": "VALIDATION_FAILED",
+      "confidence": 0.75,
+      "proposed_match_ids": [
+        "SETTLEMENT-530cda5d57fa",
+        "SETTLEMENT-03ca0d25366f",
+        "BANK-ce4856e7638f"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 2675.3133999882266
+    },
+    {
+      "scenario_id": "DUP-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1342.0318000135012
+    },
+    {
+      "scenario_id": "DUP-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1653.9491000003181
+    },
+    {
+      "scenario_id": "DUP-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1451.2771000154316
+    },
+    {
+      "scenario_id": "DUP-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1544.1521999891847
+    },
+    {
+      "scenario_id": "DUP-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1533.7717999937013
+    },
+    {
+      "scenario_id": "FEE-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1466.0029000369832
+    },
+    {
+      "scenario_id": "FEE-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1753.6115999682806
+    },
+    {
+      "scenario_id": "FEE-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1557.07809998421
+    },
+    {
+      "scenario_id": "FEE-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1648.7641999847256
+    },
+    {
+      "scenario_id": "FEE-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1440.5480000423267
+    },
+    {
+      "scenario_id": "FEE-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1348.725000047125
+    },
+    {
+      "scenario_id": "FEE-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1549.843700020574
+    },
+    {
+      "scenario_id": "FEE-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1651.1397999711335
+    },
+    {
+      "scenario_id": "FEE-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1652.0229000016116
+    },
+    {
+      "scenario_id": "FEE-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1551.8758000107482
+    },
+    {
+      "scenario_id": "FEE-011",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1851.928999996744
+    },
+    {
+      "scenario_id": "FEE-012",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1757.2299999883398
+    },
+    {
+      "scenario_id": "LATE-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1038.1979999947362
+    },
+    {
+      "scenario_id": "LATE-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 732.6953000156209
+    },
+    {
+      "scenario_id": "LATE-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 832.5943000381812
+    },
+    {
+      "scenario_id": "LATE-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 786.6453999886289
+    },
+    {
+      "scenario_id": "LATE-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 884.2767999740317
+    },
+    {
+      "scenario_id": "LATE-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 629.6842000447214
+    },
+    {
+      "scenario_id": "LATE-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 59406.806499988306
+    },
+    {
+      "scenario_id": "LATE-008",
+      "outcome": "PROPOSAL_VALID",
+      "confidence": 0.9,
+      "proposed_match_ids": [
+        "SETTLEMENT-00dd16aa6c51",
+        "BANK-9b42ebd53333"
+      ],
+      "error_classification": null,
+      "elapsed_ms": 1867.0557999867015
+    },
+    {
+      "scenario_id": "LATE-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 822.2962999716401
+    },
+    {
+      "scenario_id": "LATE-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 735.229599988088
+    },
+    {
+      "scenario_id": "NARR-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 834.6670999890193
+    },
+    {
+      "scenario_id": "NARR-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 835.9775000135414
+    },
+    {
+      "scenario_id": "NARR-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 936.5370000014082
+    },
+    {
+      "scenario_id": "NARR-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 743.0661999969743
+    },
+    {
+      "scenario_id": "NARR-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 727.1803999901749
+    },
+    {
+      "scenario_id": "NARR-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 929.2552000260912
+    },
+    {
+      "scenario_id": "NARR-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 778.067999985069
+    },
+    {
+      "scenario_id": "NARR-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 692.1726999571547
+    },
+    {
+      "scenario_id": "NARR-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1139.2356000142172
+    },
+    {
+      "scenario_id": "NARR-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 772.0598999876529
+    },
+    {
+      "scenario_id": "REFD-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 794.30060001323
+    },
+    {
+      "scenario_id": "REFD-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 634.002499980852
+    },
+    {
+      "scenario_id": "REFD-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1343.8937999890186
+    },
+    {
+      "scenario_id": "REFD-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 893.5270999791101
+    },
+    {
+      "scenario_id": "REFD-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 773.2645000214688
+    },
+    {
+      "scenario_id": "REFD-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 910.2006999892183
+    },
+    {
+      "scenario_id": "REFD-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 674.3972999975085
+    },
+    {
+      "scenario_id": "REFD-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 717.9087999975309
+    },
+    {
+      "scenario_id": "REFD-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 878.3044000156224
+    },
+    {
+      "scenario_id": "REFD-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1507.9191999975592
+    },
+    {
+      "scenario_id": "RND-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1146.2652999907732
+    },
+    {
+      "scenario_id": "RND-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1958.8366000098176
+    },
+    {
+      "scenario_id": "RND-011",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1341.6105000069365
+    },
+    {
+      "scenario_id": "RND-012",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1354.9296999699436
+    },
+    {
+      "scenario_id": "RND-013",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1642.0111999614164
+    },
+    {
+      "scenario_id": "SPLT-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1547.5365000311285
+    },
+    {
+      "scenario_id": "SPLT-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1527.3432999965735
+    },
+    {
+      "scenario_id": "SPLT-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1676.3212999794632
+    },
+    {
+      "scenario_id": "SPLT-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1856.0303000267595
+    },
+    {
+      "scenario_id": "SPLT-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1547.0083000254817
+    },
+    {
+      "scenario_id": "SPLT-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1436.1453000456095
+    },
+    {
+      "scenario_id": "SPLT-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 2028.4653999842703
+    },
+    {
+      "scenario_id": "SPLT-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1488.0667999968864
+    },
+    {
+      "scenario_id": "SPLT-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1556.5463000093587
+    },
+    {
+      "scenario_id": "SPLT-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1461.4464999758638
+    },
+    {
+      "scenario_id": "UNQ-001",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1734.202500025276
+    },
+    {
+      "scenario_id": "UNQ-002",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1275.0469000311568
+    },
+    {
+      "scenario_id": "UNQ-003",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 2546.8856999650598
+    },
+    {
+      "scenario_id": "UNQ-004",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1650.4155999864452
+    },
+    {
+      "scenario_id": "UNQ-005",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1654.1876000119373
+    },
+    {
+      "scenario_id": "UNQ-006",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1651.6230999841355
+    },
+    {
+      "scenario_id": "UNQ-007",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1347.7727000135928
+    },
+    {
+      "scenario_id": "UNQ-008",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1653.964700002689
+    },
+    {
+      "scenario_id": "UNQ-009",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1551.119799958542
+    },
+    {
+      "scenario_id": "UNQ-010",
+      "outcome": "API_ERROR",
+      "confidence": null,
+      "proposed_match_ids": [],
+      "error_classification": "quota_exhausted",
+      "elapsed_ms": 1550.5127999931574
+    }
+  ],
+  "stats": {
+    "ok": 6,
+    "error": 71,
+    "valid_proposal": 5,
+    "no_proposal": 0,
+    "validation_failed": 1
+  },
+  "total_attempted": 77,
+  "is_partial": true
+}

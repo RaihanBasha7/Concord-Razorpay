@@ -31,6 +31,11 @@ from reconciliation.evaluation.dataset_fingerprint import (
     compute_dataset_manifest,
     read_manifest,
 )
+from reconciliation.evaluation.resume import (
+    CompletionStatus,
+    filter_residuals_for_resume,
+    load_resume_state,
+)
 from reconciliation.layer2 import Layer2Case, reconstruct_layer2_case
 from reconciliation.loader import (
     ResidualScenario,
@@ -76,6 +81,7 @@ class Day4Runner:
         auditor: Optional[Auditor] = None,
         retrieval_config: Optional[RetrievalConfig] = None,
         start_offset: int = 0,
+        resume_state_path: Optional[Path | str] = None,
     ) -> None:
         if limit < 1:
             raise ValueError("limit must be at least 1.")
@@ -87,6 +93,12 @@ class Day4Runner:
         self._auditor = auditor
         self._retrieval_config = retrieval_config or RetrievalConfig()
         self._start_offset = start_offset
+        self._resume_state_path = (
+            Path(resume_state_path) if resume_state_path else None
+        )
+        self._resume_state: Dict[str, Any] = {}
+        if self._resume_state_path:
+            self._resume_state = load_resume_state(self._resume_state_path)
         self._audit_failures = 0
         self._dataset_fingerprint, self._fingerprint_diagnostics = (
             self._resolve_dataset_fingerprint()
@@ -125,9 +137,19 @@ class Day4Runner:
     def run(self) -> RunSummary:
         normalized = load_normalized_records(self._data_dir)
         all_residuals = load_residuals(self._data_dir)
-        residuals = all_residuals[
-            self._start_offset : self._start_offset + self._limit
-        ]
+
+        if self._resume_state:
+            skip, retry, run = filter_residuals_for_resume(
+                all_residuals, self._resume_state
+            )
+            active_residuals = retry + run
+            residuals = active_residuals[
+                self._start_offset : self._start_offset + self._limit
+            ]
+        else:
+            residuals = all_residuals[
+                self._start_offset : self._start_offset + self._limit
+            ]
 
         by_outcome: Dict[str, int] = {}
         diagnostics: List[str] = []
@@ -187,6 +209,7 @@ class Day4Runner:
             proposal=outcome.proposal,
             reason=outcome.reason,
             dataset_fingerprint=self._dataset_fingerprint,
+            diagnostic=outcome.diagnostic or None,
         )
 
         if self._auditor is not None:

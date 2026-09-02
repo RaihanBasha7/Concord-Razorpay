@@ -1,0 +1,302 @@
+{
+  "evaluation_type": "PARTIAL EVALUATION",
+  "verdict": "YELLOW",
+  "verdict_reason": "Evaluation is clean but incomplete due to provider quota limits.",
+  "run_timestamp": "2026-09-01T11:12:33.152568+00:00",
+  "data_source": {
+    "fresh_inference": 6,
+    "prior_continuation": 31,
+    "provider_failures": 40,
+    "unevaluated": 0,
+    "fresh_inference_note": "6 scenarios with fresh Groq outputs (proposed_match_ids available)",
+    "prior_continuation_note": "31 scenarios from prior evaluation (outcome+confidence only, proposed_match_ids not recorded; correctness UNKNOWN)",
+    "provider_failures_note": "40 scenarios with provider quota exhaustion"
+  },
+  "dataset": {
+    "fingerprint": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+    "schema_version": "1.0",
+    "dataset_seed": 42,
+    "total_records": 245,
+    "total_scenarios": 120,
+    "residual_scenarios": 77,
+    "leakage_free": true
+  },
+  "layer1_baseline": {
+    "matched_records": 43,
+    "residual_records": 159,
+    "residual_scenarios": 77,
+    "match_rate_records": 0.17551020408163265,
+    "match_rate_scenarios": 0.35833333333333334,
+    "deterministic_precision": 1.0
+  },
+  "layer2_execution": {
+    "total_attempted": 77,
+    "fresh_inference": 6,
+    "prior_continuation": 31,
+    "api_errors": 40,
+    "quota_exhausted": 40,
+    "valid_proposals": 26,
+    "no_proposals": 10,
+    "validation_failed": 1
+  },
+  "layer2_quality": {
+    "proposal_level": {
+      "total_proposals_with_known_correctness": 6,
+      "correct": 5,
+      "incorrect": 1,
+      "precision": 0.8333333333333334,
+      "note": "Only 6 of 26 proposals have known correctness (fresh inference with proposed_match_ids). 21 prior proposals lack proposed_match_ids."
+    },
+    "precision_at_thresholds": {
+      "0.90": {
+        "precision": 0.6,
+        "tp": 3,
+        "fp": 2,
+        "total": 5
+      },
+      "0.75": {
+        "precision": 0.2857142857142857,
+        "tp": 4,
+        "fp": 10,
+        "total": 14
+      },
+      "0.60": {
+        "precision": 0.18518518518518517,
+        "tp": 5,
+        "fp": 22,
+        "total": 27
+      }
+    },
+    "recall": {
+      "system_wide": 0.09523809523809523,
+      "true_positives": 4,
+      "denominator": 42,
+      "note": "True positives only counted where correctness is known (fresh inference)."
+    }
+  },
+  "layer3_routing": {
+    "record_level": {
+      "EXCEPTION": 149,
+      "DETERMINISTIC_MATCH": 86,
+      "AI_AUTO_ACCEPTED": 6,
+      "HUMAN_REVIEW": 4
+    },
+    "scenario_level": {
+      "EXCEPTION": 51,
+      "AI_AUTO_ACCEPTED": 5,
+      "HUMAN_REVIEW": 21,
+      "DETERMINISTIC_MATCH": 43
+    },
+    "accounting_check": 245
+  },
+  "false_accepts": {
+    "count": 0,
+    "rate": 0.0,
+    "total_auto_accepted": 6,
+    "details": []
+  },
+  "guardrail_impact": {
+    "proposals_affected": 1,
+    "affected_scenarios": [
+      "DUP-005"
+    ]
+  },
+  "edge_case_breakdown": {
+    "FEE_DEDUCTED": {
+      "scenario_count": 12,
+      "l1_matched": 0,
+      "residual": 12,
+      "l2_attempted": 12,
+      "l2_successful": 10,
+      "api_errors": 2,
+      "no_proposal": 1,
+      "valid_proposals": 9,
+      "auto_accept": 0,
+      "human_review": 9,
+      "exception": 3,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 11
+    },
+    "DUPLICATE": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 9,
+      "api_errors": 1,
+      "no_proposal": 0,
+      "valid_proposals": 8,
+      "auto_accept": 2,
+      "human_review": 6,
+      "exception": 2,
+      "false_accepts": 0,
+      "correct_known": 4,
+      "correct_unknown": 5
+    },
+    "TRUE_ORPHAN": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 0,
+      "api_errors": 10,
+      "no_proposal": 0,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 10,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 10
+    },
+    "EXACT_MATCH": {
+      "scenario_count": 20,
+      "l1_matched": 20,
+      "residual": 0,
+      "l2_attempted": 0,
+      "l2_successful": 0,
+      "api_errors": 0,
+      "no_proposal": 0,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 0,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 0
+    },
+    "PARTIAL_REFUND": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 1,
+      "api_errors": 9,
+      "no_proposal": 1,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 10,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 9
+    },
+    "SPLIT_SETTLEMENT": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 0,
+      "api_errors": 10,
+      "no_proposal": 0,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 10,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 10
+    },
+    "INCONSISTENT_NARRATION": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 9,
+      "api_errors": 1,
+      "no_proposal": 8,
+      "valid_proposals": 1,
+      "auto_accept": 0,
+      "human_review": 1,
+      "exception": 9,
+      "false_accepts": 0,
+      "correct_known": 8,
+      "correct_unknown": 2
+    },
+    "ROUNDING_DIFFERENCE": {
+      "scenario_count": 13,
+      "l1_matched": 8,
+      "residual": 5,
+      "l2_attempted": 5,
+      "l2_successful": 0,
+      "api_errors": 5,
+      "no_proposal": 0,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 5,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 5
+    },
+    "LATE_ARRIVING": {
+      "scenario_count": 10,
+      "l1_matched": 0,
+      "residual": 10,
+      "l2_attempted": 10,
+      "l2_successful": 8,
+      "api_errors": 2,
+      "no_proposal": 0,
+      "valid_proposals": 8,
+      "auto_accept": 3,
+      "human_review": 5,
+      "exception": 2,
+      "false_accepts": 0,
+      "correct_known": 1,
+      "correct_unknown": 9
+    },
+    "T_PLUS_DELAY": {
+      "scenario_count": 15,
+      "l1_matched": 15,
+      "residual": 0,
+      "l2_attempted": 0,
+      "l2_successful": 0,
+      "api_errors": 0,
+      "no_proposal": 0,
+      "valid_proposals": 0,
+      "auto_accept": 0,
+      "human_review": 0,
+      "exception": 0,
+      "false_accepts": 0,
+      "correct_known": 0,
+      "correct_unknown": 0
+    }
+  },
+  "system_safety": {
+    "model_quality": {
+      "false_accepts": 0,
+      "false_accept_rate": 0.0
+    },
+    "system_reliability": {
+      "api_failures": 40,
+      "quota_exhausted": 40,
+      "unevaluated": 0,
+      "provider_failure_rate": 0.5194805194805194
+    }
+  },
+  "accounting": {
+    "record_level": {
+      "total": 245,
+      "l1_deterministic": 86,
+      "ai_auto_accepted": 6,
+      "human_review": 4,
+      "exception": 149,
+      "check": 245
+    },
+    "scenario_level": {
+      "total": 120,
+      "deterministic_match": 43,
+      "ai_auto_accepted": 5,
+      "human_review": 21,
+      "exception": 51
+    }
+  },
+  "limitations": [
+    "PARTIAL EVALUATION: Only 6 of 77 residual scenarios have fresh Groq outputs with proposed_match_ids.",
+    "31 scenarios from prior evaluation have outcome+confidence but NOT proposed_match_ids; correctness is UNKNOWN.",
+    "40 scenarios had provider quota exhaustion and could not be evaluated.",
+    "Proposal-level precision is only computable for fresh inference scenarios.",
+    "Daily Groq quota (200K tokens) insufficient for 77 sequential requests."
+  ]
+}
