@@ -246,5 +246,5 @@
     "FULL EVALUATION: 77/77 residual scenarios evaluated.",
     "Provider failures (UNKNOWN) are explicitly tracked and excluded from correctness denominators. Proposal-level precision/recall are NOT COMPUTABLE without normalization mapping."
   ],
-  "generated_at": "2026-09-03T16:20:41.597277+00:00"
+  "generated_at": "2026-09-03T16:21:27.482289+00:00"
 }
