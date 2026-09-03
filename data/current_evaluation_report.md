@@ -1,7 +1,7 @@
 # Concord — Current Canonical Evaluation Report
 
 > **LIFECYCLE: CURRENT** (status: **FINAL**)
-> Generated: 2026-09-03T16:18:24.857641+00:00
+> Generated: 2026-09-03T16:20:41.597277+00:00
 > Dataset fingerprint: `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0`
 > Source artifact: `layer2_clean_audit.jsonl` (SHA-256: `6291c6f07ba98cea5d3aacca8fde7e268db9bfaded91b19aba225de50aa23c57`)
 

@@ -137,16 +137,16 @@
     }
   },
   "per_edge_case_breakdown": {
-    "RND": {
-      "scenarios_attempted": 5,
+    "DUP": {
+      "scenarios_attempted": 10,
       "scenarios_missing": 0,
-      "proposal_valid": 5,
+      "proposal_valid": 8,
       "no_proposal": 0,
       "validation_failed": 0,
-      "api_error": 0,
-      "ai_auto_accepted": 0,
-      "human_review": 5,
-      "exception": 0
+      "api_error": 2,
+      "ai_auto_accepted": 2,
+      "human_review": 6,
+      "exception": 2
     },
     "FEE": {
       "scenarios_attempted": 12,
@@ -159,39 +159,6 @@
       "human_review": 9,
       "exception": 3
     },
-    "NARR": {
-      "scenarios_attempted": 10,
-      "scenarios_missing": 0,
-      "proposal_valid": 1,
-      "no_proposal": 8,
-      "validation_failed": 0,
-      "api_error": 1,
-      "ai_auto_accepted": 0,
-      "human_review": 1,
-      "exception": 9
-    },
-    "SPLT": {
-      "scenarios_attempted": 10,
-      "scenarios_missing": 0,
-      "proposal_valid": 10,
-      "no_proposal": 0,
-      "validation_failed": 0,
-      "api_error": 0,
-      "ai_auto_accepted": 9,
-      "human_review": 1,
-      "exception": 0
-    },
-    "DUP": {
-      "scenarios_attempted": 10,
-      "scenarios_missing": 0,
-      "proposal_valid": 8,
-      "no_proposal": 0,
-      "validation_failed": 0,
-      "api_error": 2,
-      "ai_auto_accepted": 2,
-      "human_review": 6,
-      "exception": 2
-    },
     "LATE": {
       "scenarios_attempted": 10,
       "scenarios_missing": 0,
@@ -203,13 +170,13 @@
       "human_review": 5,
       "exception": 2
     },
-    "UNQ": {
+    "NARR": {
       "scenarios_attempted": 10,
       "scenarios_missing": 0,
-      "proposal_valid": 2,
-      "no_proposal": 3,
+      "proposal_valid": 1,
+      "no_proposal": 8,
       "validation_failed": 0,
-      "api_error": 5,
+      "api_error": 1,
       "ai_auto_accepted": 0,
       "human_review": 1,
       "exception": 9
@@ -224,6 +191,39 @@
       "ai_auto_accepted": 1,
       "human_review": 2,
       "exception": 7
+    },
+    "RND": {
+      "scenarios_attempted": 5,
+      "scenarios_missing": 0,
+      "proposal_valid": 5,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 0,
+      "ai_auto_accepted": 0,
+      "human_review": 5,
+      "exception": 0
+    },
+    "SPLT": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 10,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 0,
+      "ai_auto_accepted": 9,
+      "human_review": 1,
+      "exception": 0
+    },
+    "UNQ": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 2,
+      "no_proposal": 3,
+      "validation_failed": 0,
+      "api_error": 5,
+      "ai_auto_accepted": 0,
+      "human_review": 1,
+      "exception": 9
     }
   },
   "routing_buckets": {
@@ -246,5 +246,5 @@
     "FULL EVALUATION: 77/77 residual scenarios evaluated.",
     "Provider failures (UNKNOWN) are explicitly tracked and excluded from correctness denominators. Proposal-level precision/recall are NOT COMPUTABLE without normalization mapping."
   ],
-  "generated_at": "2026-09-03T16:18:24.857641+00:00"
+  "generated_at": "2026-09-03T16:20:41.597277+00:00"
 }

@@ -556,7 +556,9 @@ def _summarize(
     for sid in missing_sids:
         cat = _category_from_correlation_id(sid)
         missing_by_cat[cat] += 1
-    for cat in set(list(attempted_by_cat) + list(missing_by_cat)):
+    # Sorted iteration keeps the report byte-deterministic across runs
+    # (Python set iteration order is randomized per process).
+    for cat in sorted(set(list(attempted_by_cat) + list(missing_by_cat))):
         edge_breakdown[cat]["scenarios_attempted"] = attempted_by_cat.get(cat, 0)
         edge_breakdown[cat]["scenarios_missing"] = missing_by_cat.get(cat, 0)
 
