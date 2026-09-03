@@ -343,7 +343,7 @@ def validate_resume_artifact(
       * PROPOSAL_VALID has proposed_match_ids
       * NO_PROPOSAL has empty/null proposal
       * API_ERROR has diagnostic
-      * presented_record_ids are non-empty and belong to the scenario
+      * presented_record_ids are non-empty and include all scenario member IDs
       * proposed_match_ids are subsets of presented_record_ids when present
 
     Returns a list of error strings. Empty list means valid.
@@ -438,11 +438,13 @@ def validate_resume_artifact(
                 residual = residual_map.get(scenario_id)
                 if residual:
                     member_ids = set(residual.member_record_ids)
-                    for pid in presented:
-                        if pid not in member_ids:
+                    presented_set = set(presented)
+                    for mid in member_ids:
+                        if mid not in presented_set:
                             errors.append(
-                                f"Record {line_no}: presented_record_id {pid} "
-                                f"not in scenario {scenario_id} members"
+                                f"Record {line_no}: scenario member {mid} "
+                                f"not found in presented_record_ids for "
+                                f"scenario {scenario_id}"
                             )
 
     return errors

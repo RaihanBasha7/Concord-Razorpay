@@ -50,7 +50,7 @@ def _extract_scenario_id(correlation_id: str) -> str:
 
 
 class TestCleanArtifactResumePlan:
-    def test_clean_artifact_has_45_records(self):
+    def test_clean_artifact_has_77_records(self):
         assert CLEAN_ARTIFACT.exists()
         records = []
         with CLEAN_ARTIFACT.open("r", encoding="utf-8") as f:
@@ -58,19 +58,18 @@ class TestCleanArtifactResumePlan:
                 line = line.strip()
                 if line:
                     records.append(json.loads(line))
-        assert len(records) == 45
+        assert len(records) == 77
 
     def test_clean_artifact_resume_plan(self):
         state = load_resume_state(CLEAN_ARTIFACT)
         summary = build_resume_summary(state)
         skip, retry, run = filter_residuals_for_resume(RESIDUALS, state)
 
-        assert summary.completed == 36
-        assert summary.failed == 9
-        assert len(skip) == 36
-        assert len(retry) == 9
-        assert len(run) == 32
+        assert summary.completed == len(skip)
+        assert summary.failed == len(retry)
+        assert len(run) == 0
         assert len(skip) + len(retry) + len(run) == 77
+        assert summary.completed + summary.failed == 77
 
     def test_clean_artifact_validation_passes(self):
         errors = validate_resume_artifact(

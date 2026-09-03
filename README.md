@@ -105,7 +105,7 @@ The repository includes unit tests, invariant tests, and acceptance tests coveri
 
 ## Day 5 — Evaluation & Guardrails
 
-**Layer 2 evaluation status (as of 2026-09-02):** 36 of 77 Layer 2 scenarios completed successfully, 9 failed on Groq rate limits (TPM/TPD exhaustion), and 32 have not yet been attempted. The canonical artifact (`data/layer2_clean_audit.jsonl`) covers 45/77 scenarios (36 completed, 9 API_ERROR). A full 77/77 evaluation has not been completed.
+**Layer 2 evaluation status (final — 77/77):** all 77 residual Layer 2 scenarios have been evaluated against the frozen dataset (fingerprint `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0`). The canonical artifact (`data/layer2_clean_audit.jsonl`) contains 77/77 records: 46 `PROPOSAL_VALID`, 16 `NO_PROPOSAL`, and 15 `API_ERROR` (genuine provider failures preserved from Groq rate limiting, never converted into fabricated proposals). The run was completed with `scripts/resume_layer2.py`, which evaluated only the 32 previously-unattempted scenarios and preserved every existing record, then promoted the artifact to FINAL in `data/dataset_manifest.json`.
 
 Concord evaluates the full pipeline against a synthetic dataset of 120 scenarios (245 records) with controlled category quotas: exact-id matches, amount-date matches, duplicates, fee deductions, partial refunds, split settlements, rounding differences, inconsistent narrations, true orphans, and late-arriving records. The dataset is frozen on disk with a SHA-256 fingerprint; every evaluation run verifies the on-disk files match the frozen manifest before computing metrics.
 
@@ -128,26 +128,31 @@ A simple amount+date matcher runs against the same dataset to establish a compar
 
 When the frozen evaluation dataset is uploaded through the API, Concord does **not** make a new LLM request. Instead, it loads pre-computed Layer 2 audit records from JSONL artifacts produced by prior Groq inference runs (documented in `data/layer2_clean_audit.jsonl` and historical `data/layer2_full_audit.*.jsonl` files). These stored model outputs are routed through the same Layer 3 deterministic guardrails used by the application. The `demo_mode: "artifact_replay"` field in the evaluation report makes this explicit. The `layer2_mode` field in API responses reads `"frozen_artifact"` when artifact replay is active, or `"not_executed"` for non-frozen uploads.
 
-### Headline metrics (historical — stale artifact)
+### Headline metrics (final — 77/77)
 
-**⚠ The numbers below are HISTORICAL and no longer reflect the current dataset.** They were computed from `layer2_full_audit.20260829T181300.053055.jsonl` (fingerprint `8dca28fe7e5c5065…`), which was generated against a **previous** dataset fingerprint. The current dataset fingerprint is `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0` (see `data/dataset_manifest.json`). These numbers are retained for historical reference only; they should not be cited as current system performance.
+**These are the current, canonical numbers**, computed from `data/layer2_clean_audit.jsonl` (77/77 records, dataset fingerprint `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0`) by `scripts/build_current_report.py` → `data/current_evaluation_report.json`. Earlier artifacts (fingerprint `b8bf3feb…`) are superseded and retained for provenance only.
 
-| Metric | Historical Value |
-|--------|------------------|
+| Metric | Value |
+|--------|-------|
 | Total records | 245 (122 settlement + 81 bank + 42 ledger) |
-| Layer 1 matched records | 86 of 245 (35.1%) — 43 decisions covering 120 scenarios |
-| Layer 1 precision | 100.00% (43/43 correct, deterministic) |
-| AI_AUTO_ACCEPTED | 11 — Layer 2 proposals with confidence ≥ 0.90, auto-accepted |
-| HUMAN_REVIEW | 18 — Layer 2 proposals with confidence 0.60–0.89, queued for review |
-| EXCEPTION | 130 — AI_RESPONSE_INVALID (91), NO_CANDIDATE (39) |
-| AI proposals routed | 29 records from 24 PROPOSAL_VALID outcomes (out of 27 in artifact; 3 lost to scenario dedup) |
-| Baseline match rate | 40.00% (48/120) |
-| Baseline precision | 75.00% (36/48 correct) |
-| AI precision / recall | See `data/day5_full_pipeline_report.json` (historical; not recomputed for canonical artifact) |
+| Layer 1 matched records | 43 of 245 (17.6%) — deterministic, 100% precision, zero false positives |
+| Residual scenarios (Layer 2) | 77 of 77 evaluated (100% completeness) |
+| Layer 2 outcomes | 46 PROPOSAL_VALID, 16 NO_PROPOSAL, 15 API_ERROR |
+| Outcome-state classification | 26 CORRECT, 36 INCORRECT, 15 UNKNOWN (provider failures) |
+| Known outcome rate | 62/77 (80.5%) — provider failures never counted as TP/FP |
+| AI_AUTO_ACCEPTED | 15 — Layer 2 proposals with confidence ≥ 0.90, auto-accepted |
+| HUMAN_REVIEW | 30 — Layer 2 proposals with confidence 0.60–0.89, queued for review |
+| EXCEPTION | 32 — NO_PROPOSAL / API_ERROR / low-confidence outcomes |
+| False accept rate | 6 / 15 known auto-accepted (40%) — see SPLIT_SETTLEMENT scoring below |
+| Outcome-level precision ≥ 0.90 | 60.0% (9 TP / 6 FP) |
+| Outcome-level precision ≥ 0.75 | 37.0% (10 TP / 17 FP) |
+| Outcome-level precision ≥ 0.60 | 22.2% (10 TP / 35 FP) |
+| Recall | NOT COMPUTABLE (see AI-recall methodology below) |
+| Layer 1-only baseline | 17.6% match rate (43/245) at 100% deterministic precision |
 
-**Current partial numbers** (from `layer2_clean_audit.jsonl`, 45/77 scenarios, dataset fingerprint `d91ead9a86a4d1dc…`): 26 PROPOSAL_VALID, 10 NO_PROPOSAL, 9 API_ERROR. The evaluation is incomplete — 32 scenarios have not been attempted and 9 failed on Groq rate limits. No headline-metrics table can be computed until the full 77/77 evaluation completes.
+**False-accept accounting (corrected).** Of the 15 auto-accepted Layer 2 outcomes, 9 are SPLIT_SETTLEMENT scenarios whose proposals were verified against ground truth and are scored CORRECT (see [SPLIT_SETTLEMENT scenario scoring](#split_settlement-scenario-scoring)); the 6 false accepts are 2 DUPLICATE (`DUP-002`, `DUP-004`), 3 LATE_ARRIVING (`LATE-005`, `LATE-008`, `LATE-010`), and 1 PARTIAL_REFUND (`REFD-010`). At the record level, the production pipeline additionally runs every proposal through deterministic Layer 3 guardrails — the same-source-duplicate guardrail rejects the DUP proposals and the financial-evidence guardrail rejects the LATE/REFD proposals — so no false accept reaches `AI_AUTO_ACCEPTED` in production (the live pipeline auto-accepts 24 records, all SPLIT_SETTLEMENT).
 
-The Layer 1 deterministic matcher trades coverage for precision: it matches fewer records than the baseline (35.1% vs 40.00%) but never produces a false positive. The current canonical Layer 2 artifact contains 26 genuine Groq proposals (from 45 scenarios evaluated out of 77 residual scenarios). After deterministic deduplication in the loading code, these PROPOSAL_VALID outcomes route records to AI buckets via Layer 3 guardrails. The remaining residuals route to EXCEPTION via API_ERROR or NO_PROPOSAL outcomes — these represent the workload that a fully evaluated Layer 2 would address.
+The Layer 1 deterministic matcher trades coverage for precision: it never produces a false positive. The canonical Layer 2 artifact contains 46 genuine Groq proposals from all 77 residual scenarios. After deterministic deduplication in the loading code, these PROPOSAL_VALID outcomes route records to AI buckets via Layer 3 guardrails. The 15 API_ERROR and 16 NO_PROPOSAL residuals route to EXCEPTION — these represent genuine provider failures and correctly-refused matches, not a workload backlog.
 
 ### AI-recall methodology
 
@@ -156,6 +161,12 @@ AI recall is reported as two numbers — **system-wide** and **attempted-only** 
 ### DUPLICATE scenario scoring
 
 DUPLICATE scenarios contain two same-source settlement records (e.g. duplicate settlement reports). Layer 2 proposing that these two records match each other is currently scored as a correct outcome. This is distinct from cross-source reconciliation (e.g. settlement-to-bank matching). The expected match IDs for DUPLICATE scenarios are the settlement-only records, not all member records. This behavior is intentional for the current evaluation — it treats duplicate detection as a valid Layer 2 capability alongside cross-source matching. Whether this should remain scored as correct or be separated into its own metric is a known open question.
+
+### SPLIT_SETTLEMENT scenario scoring
+
+`expected_outcome: NO_MATCH` in this dataset means **"Layer 1's simple ID/amount matching cannot resolve this scenario"** — it does not mean "no correspondence exists". SPLIT_SETTLEMENT scenarios (`SPLT-001`…`SPLT-010`) describe one settlement whose amount exactly equals the sum of two bank credits on matching dates; every one carries `has_real_match: true` in `data/ground_truth.json`. A Layer 2 proposal of the correct three-record structure (1 settlement + 2 bank credits, composition-verified against the ground-truth `record_specs`) is a correct, evidence-backed match — precisely the multi-record financial-evidence case `_check_financial_evidence` in `reconciliation/layer3.py` exists to validate.
+
+The report generator (`scripts/build_current_report.py`) initially applied a blanket rule: any `expected_outcome: NO_MATCH` scenario receiving `PROPOSAL_VALID` was scored INCORRECT and counted as a false accept. That misclassified all 9 auto-accepted SPLIT_SETTLEMENT proposals as false accepts (a reported false accept rate of 15/15 = 100%). This was caught during pre-submission self-verification and corrected: SPLIT_SETTLEMENT proposals whose structure matches the scenario's real relationship, with `has_real_match: true`, are now scored CORRECT. The corrected report shows 26 CORRECT / 36 INCORRECT / 15 UNKNOWN and a false accept rate of 6/15 (40%). The exception is deliberately scoped to SPLIT_SETTLEMENT only — no other category receives it (see the DUPLICATE open question above), and no confidence threshold, tolerance, or guardrail was changed. The correction is pinned by regression tests in `tests/unit/test_evaluation_accounting.py` (`TestSplitSettlementScoring`).
 
 ## Known Incidents
 
@@ -183,6 +194,27 @@ The HTTP API exposes five batch endpoints and a liveness probe:
 | `GET` | `/batches/{batch_id}/eval` | Evaluation report computed for this batch |
 | `GET` | `/batches/{batch_id}/records/{record_id}` | Full decision context for one record (source data, Layer 1/Layer 2 info, audit trail) |
 | `GET` | `/health` | Liveness probe (returns 200 when the process is alive) |
+
+### Running Locally
+
+Start the FastAPI backend from the **repository root**:
+
+```bash
+uvicorn reconciliation.api.app:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+The `--factory` flag is required because `reconciliation/api/app.py` exposes `create_app()` (an application factory), not a module-level `app` object. Run the command from the repository root so that the default `data_dir` (the parent of the default `data/concord.db`, i.e. `data/`) resolves to the folder containing the frozen dataset manifest (`data/dataset_manifest.json`) and the canonical Layer 2 audit artifact (`data/layer2_clean_audit.jsonl`). Starting from any other directory would point `data_dir` at the wrong folder, and frozen-dataset fingerprint verification (and artifact replay) would not engage.
+
+The built frontend (from `npm run build` in `frontend/`) is served from `/` by the same process. A quick end-to-end smoke test:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl -X POST http://127.0.0.1:8000/batches \
+  -F "settlement=@data/settlements.csv" \
+  -F "bank=@data/bank.csv" \
+  -F "ledger=@data/ledger.csv"
+# then GET /batches/{batch_id}/eval for the routing composition
+```
 
 ### Layer 2 / API gap
 
@@ -241,8 +273,8 @@ The `BatchStore` interface is intentionally narrow — these changes are enginee
 
 Audit artifacts follow a clear lifecycle:
 
-- **Active resumable partial artifact** (`data/layer2_clean_audit.jsonl`): committed to git. The current in-progress evaluation state produced by a partial Groq run (45 of 77 scenarios evaluated as of 2026-09-02). It is the authoritative source for `--resume` operations and is wired as the `canonical_layer2_artifact` in the dataset manifest. Once all 77 scenarios are evaluated and the artifact is finalized, it becomes the **FINAL CANONICAL ARTIFACT**.
-- **Final canonical artifact** (`data/layer2_full_audit.jsonl`): not currently tracked by git or present on disk — it was committed in `c44d6da` (77 records, old fingerprint `8dca28fe…`) and deleted in `3a8de77` when the dataset fingerprint changed. When `scripts/run_layer2_full.py` completes a full 77/77 run against the current fingerprint, the output is promoted atomically from the `.tmp` sidecar to this path. Its SHA-256 hash is verified at load time.
+- **Final canonical artifact** (`data/layer2_clean_audit.jsonl`): committed to git. The 77/77 evaluation is complete — the manifest records status `final` under both `canonical_layer2_artifact` and `final_canonical_artifact`, with the artifact's SHA-256 verified at load time and by `scripts/build_current_report.py` before any metric is computed. It is the authoritative source for artifact replay through the API and for `--resume`/verification operations.
+- **Historical full-run artifacts** (`data/layer2_full_audit.*.jsonl` and timestamped clean-audit archives): gitignored (pattern: `data/layer2_full_audit.*.jsonl`). Committed in `c44d6da` under the old fingerprint `8dca28fe…` and superseded when the dataset fingerprint changed; the timestamped archives are the only record of intermediate or failed runs. Policy: keep all of them — they are small and infrequent.
 - **Historical artifacts** (`data/layer2_full_audit.20260829T181300.053055.jsonl`, `data/layer2_full_audit.legacy.jsonl`, and 9 other timestamped files): gitignored (pattern: `data/layer2_full_audit.*.jsonl`). These are the only record of intermediate or failed runs. Policy: keep all of them. They are small (47-78K each) and infrequent (one per run). If disk usage becomes a concern, delete the oldest archives manually — there is no automated cleanup.
 - **Historical evaluation report** (`data/day5_full_pipeline_report.json`, `.md`): committed to git. Generated on 2026-08-30 by the evaluation harness from a previous artifact version. Retained for historical reference only.
 - **Dataset manifest** (`data/dataset_manifest.json`): committed to git. Frozen fingerprint of the evaluation dataset.

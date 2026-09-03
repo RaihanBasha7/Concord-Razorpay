@@ -559,6 +559,286 @@ class TestGuardrailTests:
         assert outcome.outcome == ProposalOutcomeType.PROPOSAL_VALID
 
 
+class TestProviderFailureAccounting:
+    """Regression tests for provider-failure accounting bug fix.
+
+    The bug: provider failures (API_ERROR/TIMEOUT) were silently counted as
+    false positives in precision and as false accepts in false-accept rate.
+    The fix: provider failures map to UNKNOWN, never FP. They are tracked
+    separately and excluded from correctness denominators.
+    """
+
+    def test_provider_failures_map_to_unknown_not_fp(self):
+        """Provider failures (API_ERROR) must be classified as UNKNOWN, never FP."""
+        report_path = Path("data/current_evaluation_report.json")
+        assert report_path.exists(), "Current evaluation report not found"
+        report = json.loads(report_path.read_text())
+
+        # Check outcome_states exists and has UNKNOWN count
+        outcome_states = report["layer2"]["outcome_states"]
+        assert outcome_states["unknown"] == 15, (
+            f"Expected 15 UNKNOWN (provider failures), got {outcome_states['unknown']}"
+        )
+        # Corrected SPLIT_SETTLEMENT scoring: the 10 SPLT scenarios with
+        # has_real_match=true and structurally-correct proposals are CORRECT.
+        assert outcome_states["correct"] == 26, (
+            f"Expected 26 CORRECT after SPLIT_SETTLEMENT correction, "
+            f"got {outcome_states['correct']}"
+        )
+        assert outcome_states["incorrect"] == 36, (
+            f"Expected 36 INCORRECT after SPLIT_SETTLEMENT correction, "
+            f"got {outcome_states['incorrect']}"
+        )
+
+        # Check precision metrics: unknown_correctness must be 0 at all thresholds
+        # (provider failures have no confidence, so not in eligible set)
+        for thr in ("0_90", "0_75", "0_60"):
+            m = report[f"precision_at_{thr}"]
+            assert m["unknown_correctness"] == 0, (
+                f"Threshold {thr}: provider failures leaked into unknown_correctness"
+            )
+
+    def test_provider_failures_excluded_from_precision_denominators(self):
+        """Provider failures must not appear in TP/FP counts."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        # All precision denominators should only count known-correctness records
+        for thr in ("0_90", "0_75", "0_60"):
+            m = report[f"precision_at_{thr}"]
+            denom = m["true_positive"] + m["false_positive"]
+            assert m["known_correctness"] == denom, (
+                f"Threshold {thr}: precision denominator ({denom}) != "
+                f"known_correctness ({m['known_correctness']})"
+            )
+            assert m["known_outcome_rate"] == 1.0, (
+                f"Threshold {thr}: known_outcome_rate should be 1.0 (no unknowns in eligible)"
+            )
+
+    def test_provider_failures_not_counted_as_false_accepts(self):
+        """Provider failures produce no proposal → cannot be false accepts."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        # false_accept_unknown_correctness should be 0
+        # (AI_AUTO_ACCEPTED are all PROPOSAL_VALID with conf >= 0.90; provider failures are API_ERROR)
+        assert report.get("false_accept_unknown_correctness", 0) == 0, (
+            "Provider failures leaked into false accept unknown_correctness"
+        )
+        assert report["false_accept_known_correctness"] == 15, (
+            "Expected 15 known auto-accepted, got "
+            f"{report.get('false_accept_known_correctness')}"
+        )
+
+    def test_false_accept_rate_uses_only_known_correctness(self):
+        """False accept rate denominator must be known-correctness auto-accepted, not total."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        fa_count = report["false_accept_count"]
+        fa_known = report["false_accept_known_correctness"]
+        fa_rate = report["false_accept_rate"]
+
+        # Corrected SPLIT_SETTLEMENT scoring: 9 of the 15 auto-accepted are
+        # legitimate SPLT matches, leaving 6 false accepts (2 DUP, 3 LATE,
+        # 1 REFD) over 15 known-correctness auto-accepts.
+        assert fa_known == 15, (
+            f"Expected 15 known auto-accepted, got {fa_known}"
+        )
+        assert fa_count == 6, (
+            f"Expected 6 false accepts after SPLIT_SETTLEMENT correction, "
+            f"got {fa_count}"
+        )
+        assert abs(fa_rate - 0.4) < 1e-9, (
+            f"Expected false accept rate 0.4 (6/15), got {fa_rate}"
+        )
+
+        # Rate should be count / known_correctness, not count / total_auto_accepted
+        if fa_known > 0:
+            expected_rate = fa_count / fa_known
+            assert abs(fa_rate - expected_rate) < 1e-9, (
+                f"FAR {fa_rate} != count({fa_count})/known({fa_known}) = {expected_rate}"
+            )
+
+    def test_unknown_outcomes_visible_in_report(self):
+        """UNKNOWN outcomes must remain visible, never silently dropped."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        # outcome_states must explicitly report UNKNOWN
+        os = report["layer2"]["outcome_states"]
+        assert "unknown" in os, "UNKNOWN count missing from outcome_states"
+        assert os["unknown"] == 15, f"Expected 15 UNKNOWN, got {os['unknown']}"
+
+        # provider_failure breakdown must be present
+        pf = report["layer2"]["provider_failure"]
+        assert pf["total"] == 15
+        assert pf["quota_exhausted"] == 7
+        assert pf["transient"] == 7
+        assert pf["unknown"] == 1
+
+    def test_recall_reported_not_computable(self):
+        """Recall must be explicitly NOT_COMPUTABLE with explanation."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        recall = report["recall"]
+        assert recall["status"] == "NOT_COMPUTABLE", (
+            f"Recall status should be NOT_COMPUTABLE, got {recall['status']}"
+        )
+        assert recall["value"] is None
+        assert "normalization mapping" in recall["note"].lower()
+        assert "synthetic_ref" in recall["note"]
+
+    def test_precision_is_outcome_level_not_proposal_level(self):
+        """Precision metrics must be labeled as outcome-level, not proposal-level."""
+        report_path = Path("data/current_evaluation_report.json")
+        report = json.loads(report_path.read_text())
+
+        for thr in ("0_90", "0_75", "0_60"):
+            m = report[f"precision_at_{thr}"]
+            assert "outcome-level" in m["note"].lower()
+            assert "NOT COMPUTABLE" in m["note"] or "not computable" in m["note"].lower()
+
+
+class TestSplitSettlementScoring:
+    """Regression test for the SPLIT_SETTLEMENT scoring correction.
+
+    expected_outcome: NO_MATCH in this dataset means "Layer 1's simple
+    ID/amount matching cannot resolve this scenario", NOT "no correspondence
+    exists". SPLIT_SETTLEMENT scenarios carry has_real_match: true; a
+    PROPOSAL_VALID whose structure matches the ground-truth relationship
+    (1 settlement amount == sum of 2 bank credits) is a correct,
+    evidence-backed match — never a false accept.
+
+    This pins the fix in scripts/build_current_report.py so the exception
+    cannot silently regress, and confirms it is NOT extended to proposals
+    whose structure does not match the scenario relationship.
+    """
+
+    @staticmethod
+    def _run_summarize(records, gt_scenarios):
+        """Run _summarize from scripts/build_current_report.py on synthetic data."""
+        import importlib.util
+
+        script = (
+            Path(__file__).resolve().parent.parent.parent
+            / "scripts"
+            / "build_current_report.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "build_current_report", script
+        )
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        ground_truth = {s["scenario_id"]: s for s in gt_scenarios}
+        return mod._summarize(records, [], ground_truth)
+
+    @staticmethod
+    def _audit_record(cid, confidence, proposed_ids):
+        return {
+            "correlation_id": cid,
+            "outcome": "PROPOSAL_VALID",
+            "confidence": confidence,
+            "proposal": {"proposed_match_ids": proposed_ids},
+            "reason": "test",
+        }
+
+    def test_split_settlement_valid_proposal_is_correct_not_false_accept(self):
+        """A SPLT scenario with has_real_match=true and a structurally correct
+        proposal is classified CORRECT and never counts as a false accept,
+        while a structurally mismatched proposal stays INCORRECT."""
+        gt_scenarios = [
+            {
+                "scenario_id": "SPLT-901",
+                "category": "SPLIT_SETTLEMENT",
+                "expected_outcome": "NO_MATCH",
+                "has_real_match": True,
+                "record_specs": [
+                    {"source_type": "SETTLEMENT"},
+                    {"source_type": "BANK"},
+                    {"source_type": "BANK"},
+                ],
+            },
+            {
+                "scenario_id": "SPLT-902",
+                "category": "SPLIT_SETTLEMENT",
+                "expected_outcome": "NO_MATCH",
+                "has_real_match": True,
+                "record_specs": [
+                    {"source_type": "SETTLEMENT"},
+                    {"source_type": "BANK"},
+                    {"source_type": "BANK"},
+                ],
+            },
+        ]
+        records = [
+            # Correct: 1 settlement + 2 banks matches the scenario relationship.
+            self._audit_record(
+                "SPLT-901",
+                0.95,
+                ["SETTLEMENT-a", "BANK-b", "BANK-c"],
+            ),
+            # Incorrect: only 2 members proposed — the split settlement's
+            # real relationship (1 settlement == 2 bank credits) is not met.
+            self._audit_record(
+                "SPLT-902",
+                0.95,
+                ["SETTLEMENT-a", "BANK-b"],
+            ),
+        ]
+
+        summary = self._run_summarize(records, gt_scenarios)
+
+        states = summary["outcome_states"]
+        assert states["correct"] == 1, (
+            f"SPLT-901 should be CORRECT, got states: {states}"
+        )
+        assert states["incorrect"] == 1, (
+            f"SPLT-902 should be INCORRECT, got states: {states}"
+        )
+        assert states["unknown"] == 0
+
+        # Both are auto-accepted (>= 0.90) with known correctness.
+        fa = summary["false_accept"]
+        assert fa["known_correctness"] == 2
+        # Only the structurally-mismatched proposal is a false accept.
+        assert fa["count"] == 1, f"Expected 1 false accept, got {fa['count']}"
+        assert fa["details"][0]["scenario_id"] == "SPLT-902"
+        assert fa["rate"] == 0.5
+
+    def test_split_settlement_without_real_match_is_not_exempted(self):
+        """A SPLT scenario with has_real_match=false (a true orphan variant)
+        does NOT receive the exception — PROPOSAL_VALID stays INCORRECT."""
+        gt_scenarios = [
+            {
+                "scenario_id": "SPLT-903",
+                "category": "SPLIT_SETTLEMENT",
+                "expected_outcome": "NO_MATCH",
+                "has_real_match": False,
+                "record_specs": [
+                    {"source_type": "SETTLEMENT"},
+                    {"source_type": "BANK"},
+                    {"source_type": "BANK"},
+                ],
+            },
+        ]
+        records = [
+            self._audit_record(
+                "SPLT-903", 0.95, ["SETTLEMENT-a", "BANK-b", "BANK-c"]
+            ),
+        ]
+
+        summary = self._run_summarize(records, gt_scenarios)
+        states = summary["outcome_states"]
+        assert states["correct"] == 0
+        assert states["incorrect"] == 1, (
+            f"SPLT with has_real_match=false must stay INCORRECT: {states}"
+        )
+        assert summary["false_accept"]["count"] == 1
+
+
 class TestEvaluationReadiness:
     """Issue 9: Verify the evaluation infrastructure is ready for a full run."""
 

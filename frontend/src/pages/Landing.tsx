@@ -1,13 +1,11 @@
-import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { ShieldCheck, ArrowRight, ArrowDown, CheckCircle2, Brain, Shield, FileCheck2, Zap } from 'lucide-react';
+import { motion, useScroll } from 'framer-motion';
+import { ShieldCheck, ArrowRight, ArrowDown, CheckCircle2, Brain, Shield, FileCheck2 } from 'lucide-react';
 import { ReconciliationOrbit } from '@/components/visual/ReconciliationOrbit';
 import { useAmbientGlow } from '@/hooks/useMouseInteraction';
 
 export function Landing() {
   const { scrollYProgress } = useScroll();
-  const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
   return (
     <div className="min-h-screen bg-ink-950 text-cream-100">

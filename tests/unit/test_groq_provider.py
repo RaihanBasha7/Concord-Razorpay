@@ -478,6 +478,34 @@ class TestApiErrorClassification:
         assert _classify_api_error(exc) == "transient"
         assert _is_rate_limit_api_error(exc) is True
 
+    def test_tpm_type_not_in_transient_set_but_code_marks_rate_limit(self):
+        """Regression: non-standard ``type`` (e.g. ``"tokens"``) that is NOT in
+        ``_TRANSIENT_ERROR_TYPES`` must still be detected as a rate-limit error
+        when ``code`` is ``"rate_limit_exceeded"``.
+
+        The original classifier only checked ``type`` against
+        ``_TRANSIENT_ERROR_TYPES``. Since ``"tokens"`` is not in that set,
+        the error fell through to ``"unknown"`` — a misclassification that
+        caused futile retries and wasted API budget.
+
+        This test pins the exact bug class: ``type`` alone is insufficient;
+        ``code`` must also be consulted.
+        """
+        exc = APIError(
+            "rate limit",
+            request=MagicMock(),
+            body={
+                "error": {
+                    "type": "tokens",
+                    "code": "rate_limit_exceeded",
+                    "message": "Rate limit reached for tokens per minute.",
+                }
+            },
+        )
+        # Without the code check, this would classify as "unknown"
+        assert _classify_api_error(exc) == "transient"
+        assert _is_rate_limit_api_error(exc) is True
+
 
 class TestProviderRetryTransientApiError:
     def test_rate_limit_raises_immediately_no_provider_retry(self):

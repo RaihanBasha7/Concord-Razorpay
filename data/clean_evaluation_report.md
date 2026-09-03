@@ -1,5 +1,11 @@
 # Clean Layer 2 Evaluation Report
 
+> **LIFECYCLE: HISTORICAL** — This artifact was generated against dataset fingerprint `b8bf3feb` which is no longer the canonical fingerprint.
+>
+> Current canonical dataset fingerprint: `d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0`.
+>
+> Superseded by `data/layer2_clean_audit.jsonl`. Retained for historical reference only; must never be interpreted as a current evaluation result.
+
 **Evaluation type:** PARTIAL EVALUATION
 **Timestamp:** 2026-09-01T09:50:18.167347+00:00
 **Dataset fingerprint:** `b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93`

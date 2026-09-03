@@ -1,4 +1,9 @@
 {
+  "_lifecycle": "historical",
+  "_superseded_by": "data/layer2_clean_audit.jsonl",
+  "_superseded_reason": "This artifact was generated against dataset fingerprint b8bf3feb which is no longer the canonical fingerprint (current canonical fingerprint is d91ead9a). Retained for historical reference only; must never be interpreted as a current evaluation result. See data/dataset_manifest.json for the canonical manifest and data/evaluation_report.json (when present) or data/layer2_clean_audit.jsonl for the current evaluation source of truth.",
+  "_current_canonical_fingerprint": "d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0",
+  "_provenance_warning": "The fingerprint below belongs to the historical run and is NOT the current canonical fingerprint.",
   "evaluation_type": "PARTIAL EVALUATION",
   "verdict": "YELLOW",
   "verdict_reason": "Evaluation is clean but incomplete due to provider quota limits.",

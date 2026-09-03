@@ -11,23 +11,64 @@
   },
   "active_resumable_partial_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "13f7374bc4bfeb6cd6b98b56f8a898a399cadc8dfa0dc6526417ef1cae5bca9e",
-    "generation_timestamp": "2026-09-01T10:00:06.709654+00:00",
-    "record_count": 45,
-    "status": "partial",
-    "note": "ACTIVE RESUMABLE PARTIAL ARTIFACT -- not canonical until 77/77 completion. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0. Partial: 32 unevaluated due to Groq quota."
-  },
-  "final_canonical_artifact": {
-    "filename": "layer2_full_audit.jsonl",
-    "status": "pending_full_run",
-    "note": "Will become the FINAL CANONICAL ARTIFACT only after scripts/run_layer2_full.py completes all 77 scenarios with the correct fingerprint."
+    "status": "final",
+    "record_count": 77,
+    "total_expected": 77,
+    "sha256": "6291c6f07ba98cea5d3aacca8fde7e268db9bfaded91b19aba225de50aa23c57",
+    "note": "FINAL artifact: 77 of 77 scenarios evaluated. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0. Provider failures: 15 (preserved as genuine API_ERROR/TIMEOUT). Archived previous partial artifact."
   },
   "canonical_layer2_artifact": {
     "filename": "layer2_clean_audit.jsonl",
-    "sha256": "13f7374bc4bfeb6cd6b98b56f8a898a399cadc8dfa0dc6526417ef1cae5bca9e",
-    "record_count": 45,
+    "status": "final",
+    "record_count": 77,
     "total_expected": 77,
-    "status": "partial",
-    "note": "Partial artifact: 45 of 77 scenarios evaluated (Groq quota exhaustion). Used as canonical until a full 77/77 artifact is generated. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0."
-  }
+    "sha256": "6291c6f07ba98cea5d3aacca8fde7e268db9bfaded91b19aba225de50aa23c57",
+    "note": "FINAL artifact: 77 of 77 scenarios evaluated. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0. Provider failures: 15 (preserved as genuine API_ERROR/TIMEOUT). Archived previous partial artifact."
+  },
+  "final_canonical_artifact": {
+    "filename": "layer2_clean_audit.jsonl",
+    "status": "final",
+    "record_count": 77,
+    "total_expected": 77,
+    "sha256": "6291c6f07ba98cea5d3aacca8fde7e268db9bfaded91b19aba225de50aa23c57",
+    "note": "FINAL artifact: 77 of 77 scenarios evaluated. Dataset fingerprint: d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0. Provider failures: 15 (preserved as genuine API_ERROR/TIMEOUT). Completed via resume_layer2.py after restoring 45 valid baseline records."
+  },
+  "historical_artifacts": [
+    {
+      "path": "data/clean_evaluation_report.json",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    },
+    {
+      "path": "data/clean_evaluation_report.md",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    },
+    {
+      "path": "data/clean_eval_results.json",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    },
+    {
+      "path": "data/clean_full_evaluation_report.json",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    },
+    {
+      "path": "data/clean_full_evaluation_report.md",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    },
+    {
+      "path": "data/clean_full_eval_results.json",
+      "fingerprint_at_generation": "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93",
+      "lifecycle": "historical",
+      "reason": "Generated against an older dataset fingerprint that has since been corrected. Retained for historical evidence; must never be interpreted as current."
+    }
+  ]
 }

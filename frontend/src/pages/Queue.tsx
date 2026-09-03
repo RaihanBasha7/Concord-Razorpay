@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, AlertTriangle, ArrowRight, Filter } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Filter } from 'lucide-react';
 import { Topbar } from '@/components/navigation/Topbar';
 import { StatusPill, RoutingReasonBadge } from '@/components/ui/StatusPill';
 import { ConfidenceBar } from '@/components/ui/ConfidenceBar';

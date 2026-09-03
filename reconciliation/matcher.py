@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, List, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple
 
+from reconciliation.config import DEFAULT_TOLERANCES
 from reconciliation.domain.models import (
     MatchRule,
     NormalizedRecord,
@@ -15,7 +16,7 @@ from reconciliation.result import ReconciliationResult
 
 def reconcile(
     records: Iterable[NormalizedRecord],
-    config: MatcherConfig,
+    config: Optional[MatcherConfig] = None,
 ) -> ReconciliationResult:
     """
     Run the deterministic reconciliation matcher against the given records.
@@ -24,6 +25,9 @@ def reconcile(
     1. Exact identifier matching (highest priority)
     2. Amount-plus-date matching (on residuals from step 1)
     """
+    if config is None:
+        config = MatcherConfig.from_tolerances(DEFAULT_TOLERANCES)
+
     record_list = list(records)
 
     id_counts: dict[str, int] = defaultdict(int)

@@ -1,0 +1,250 @@
+{
+  "_lifecycle": "current",
+  "_status": "final",
+  "_canonical_artifact_filename": "layer2_clean_audit.jsonl",
+  "_canonical_artifact_sha256": "6291c6f07ba98cea5d3aacca8fde7e268db9bfaded91b19aba225de50aa23c57",
+  "_historical_artifacts_superseded": [
+    "data/clean_evaluation_report.json",
+    "data/clean_evaluation_report.md",
+    "data/clean_eval_results.json",
+    "data/clean_full_evaluation_report.json",
+    "data/clean_full_evaluation_report.md",
+    "data/clean_full_eval_results.json"
+  ],
+  "evaluation_status": "final",
+  "dataset_fingerprint": "d91ead9a86a4d1dc949cf020a118957eeacb6eb4f18efb844c3c1b7afd0c6be0",
+  "dataset_seed": 42,
+  "total_records": 245,
+  "total_scenarios": 120,
+  "residual_scenarios": 77,
+  "layer2_attempted": 77,
+  "layer2_missing": 0,
+  "missing_scenario_ids": [],
+  "layer1": {
+    "matched_records": 43,
+    "residual_records": 159,
+    "residual_scenarios": 77,
+    "match_rate_records": 0.17551020408163265
+  },
+  "layer2": {
+    "outcomes_by_type": {
+      "PROPOSAL_VALID": 46,
+      "API_ERROR": 15,
+      "NO_PROPOSAL": 16
+    },
+    "provider_failure": {
+      "total": 15,
+      "quota_exhausted": 7,
+      "transient": 7,
+      "unknown": 1
+    },
+    "outcome_states": {
+      "correct": 26,
+      "incorrect": 36,
+      "unknown": 15,
+      "known_outcome_count": 62,
+      "total_with_ground_truth": 77,
+      "known_outcome_rate": 0.8051948051948052
+    },
+    "successful": 62
+  },
+  "precision_at_0_90": {
+    "total_eligible": 15,
+    "known_correctness": 15,
+    "unknown_correctness": 0,
+    "true_positive": 9,
+    "false_positive": 6,
+    "precision": 0.6,
+    "known_outcome_rate": 1.0,
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+  },
+  "precision_at_0_75": {
+    "total_eligible": 27,
+    "known_correctness": 27,
+    "unknown_correctness": 0,
+    "true_positive": 10,
+    "false_positive": 17,
+    "precision": 0.37037037037037035,
+    "known_outcome_rate": 1.0,
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+  },
+  "precision_at_0_60": {
+    "total_eligible": 45,
+    "known_correctness": 45,
+    "unknown_correctness": 0,
+    "true_positive": 10,
+    "false_positive": 35,
+    "precision": 0.2222222222222222,
+    "known_outcome_rate": 1.0,
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+  },
+  "recall": {
+    "status": "NOT_COMPUTABLE",
+    "value": null,
+    "true_positives": 0,
+    "denominator": 0,
+    "note": "Proposal-level recall is NOT COMPUTABLE because synthetic record IDs in the artifact (e.g., 'SETTLEMENT-xxx') cannot be mapped back to ground_truth record_specs (which use synthetic_refs like 'REC-SET-001'). The normalization mapping is not present in the artifact. Minimal fix: include 'synthetic_ref' in each audit record or a 'normalization_map' in the artifact header."
+  },
+  "outcome_level_metrics": {
+    "matchable_scenarios": {
+      "total": 0,
+      "correct": 0,
+      "incorrect": 0,
+      "accuracy": null
+    },
+    "no_match_scenarios": {
+      "total": 62,
+      "correct": 26,
+      "incorrect": 36,
+      "accuracy": 0.41935483870967744
+    }
+  },
+  "false_accept_rate": 0.4,
+  "false_accept_count": 6,
+  "false_accept_total_auto_accepted": 15,
+  "false_accept_known_correctness": 15,
+  "false_accept_unknown_correctness": 0,
+  "review_composition": {
+    "total": 30,
+    "by_category": {
+      "DUP": 6,
+      "FEE": 9,
+      "LATE": 5,
+      "NARR": 1,
+      "REFD": 2,
+      "RND": 5,
+      "SPLT": 1,
+      "UNQ": 1
+    }
+  },
+  "exception_composition": {
+    "total": 32,
+    "by_category": {
+      "DUP": 2,
+      "FEE": 3,
+      "LATE": 2,
+      "NARR": 9,
+      "REFD": 7,
+      "UNQ": 9
+    },
+    "by_reason": {
+      "RateLimitError[transient]: Error code: 429 - {'error': {'message': 'Rate limit r": 7,
+      "NO_PROPOSAL": 10,
+      "RateLimitError[quota_exhausted]: Error code: 429 - {'error': {'message': 'Rate l": 2,
+      "LLM provider returned an API error.": 6,
+      "Model returned no proposed match IDs.": 6,
+      "Proposal validated against presented record set.": 1
+    }
+  },
+  "per_edge_case_breakdown": {
+    "RND": {
+      "scenarios_attempted": 5,
+      "scenarios_missing": 0,
+      "proposal_valid": 5,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 0,
+      "ai_auto_accepted": 0,
+      "human_review": 5,
+      "exception": 0
+    },
+    "FEE": {
+      "scenarios_attempted": 12,
+      "scenarios_missing": 0,
+      "proposal_valid": 9,
+      "no_proposal": 1,
+      "validation_failed": 0,
+      "api_error": 2,
+      "ai_auto_accepted": 0,
+      "human_review": 9,
+      "exception": 3
+    },
+    "NARR": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 1,
+      "no_proposal": 8,
+      "validation_failed": 0,
+      "api_error": 1,
+      "ai_auto_accepted": 0,
+      "human_review": 1,
+      "exception": 9
+    },
+    "SPLT": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 10,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 0,
+      "ai_auto_accepted": 9,
+      "human_review": 1,
+      "exception": 0
+    },
+    "DUP": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 8,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 2,
+      "ai_auto_accepted": 2,
+      "human_review": 6,
+      "exception": 2
+    },
+    "LATE": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 8,
+      "no_proposal": 0,
+      "validation_failed": 0,
+      "api_error": 2,
+      "ai_auto_accepted": 3,
+      "human_review": 5,
+      "exception": 2
+    },
+    "UNQ": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 2,
+      "no_proposal": 3,
+      "validation_failed": 0,
+      "api_error": 5,
+      "ai_auto_accepted": 0,
+      "human_review": 1,
+      "exception": 9
+    },
+    "REFD": {
+      "scenarios_attempted": 10,
+      "scenarios_missing": 0,
+      "proposal_valid": 3,
+      "no_proposal": 4,
+      "validation_failed": 0,
+      "api_error": 3,
+      "ai_auto_accepted": 1,
+      "human_review": 2,
+      "exception": 7
+    }
+  },
+  "routing_buckets": {
+    "HUMAN_REVIEW": 30,
+    "AI_AUTO_ACCEPTED": 15,
+    "EXCEPTION": 32
+  },
+  "throughput": {
+    "layer1_time_ms": 1.027700025588274,
+    "layer2_attempted": 77,
+    "layer2_evaluated_in_artifact": 77
+  },
+  "baseline_comparison": {
+    "layer1_only_match_rate": 0.17551020408163265,
+    "layer1_deterministic_precision": 1.0,
+    "note": "Baseline comparison uses the Layer 1 deterministic matcher as the no-AI reference. Concord's hybrid (L1 + L2 + L3) is evaluated against it."
+  },
+  "completeness": 1.0,
+  "limitations": [
+    "FULL EVALUATION: 77/77 residual scenarios evaluated.",
+    "Provider failures (UNKNOWN) are explicitly tracked and excluded from correctness denominators. Proposal-level precision/recall are NOT COMPUTABLE without normalization mapping."
+  ],
+  "generated_at": "2026-09-03T16:18:24.857641+00:00"
+}

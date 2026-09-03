@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowLeft,
-  Loader2,
   AlertTriangle,
   CheckCircle2,
   XCircle,
@@ -18,7 +16,7 @@ import { StatusPill, RoutingReasonBadge } from '@/components/ui/StatusPill';
 import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
 import { PageTransition, StaggerGroup, StaggerItem, Skeleton } from '@/components/ui/Transitions';
 import { getRecordDetail } from '@/api/concord';
-import type { RecordAuditDetail, RoutingBucket } from '@/lib/types';
+import type { RecordAuditDetail } from '@/lib/types';
 
 const LAST_BATCH_KEY = 'concord:lastBatchId';
 

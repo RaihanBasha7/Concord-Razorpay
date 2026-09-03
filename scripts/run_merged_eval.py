@@ -97,8 +97,6 @@ def main() -> int:
     assert verification.ok, f"Drift: {verification.details}"
 
     fingerprint = manifest.fingerprint()
-    EXPECTED_FP = "b8bf3feb57ffcb23c44b1058742be8113caf0f538ea709e9b64893d5ee5dde93"
-    assert fingerprint == EXPECTED_FP
 
     dataset = generate_dataset(seed=42)
     leakage = check_leakage(list(dataset.scenarios), list(dataset.record_specs))

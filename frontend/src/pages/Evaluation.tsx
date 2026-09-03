@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, AlertTriangle, FlaskConical, ShieldCheck, Brain, AlertCircle } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, Brain, AlertCircle } from 'lucide-react';
 import { Topbar } from '@/components/navigation/Topbar';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { PageTransition, StaggerGroup, StaggerItem, Skeleton } from '@/components/ui/Transitions';
