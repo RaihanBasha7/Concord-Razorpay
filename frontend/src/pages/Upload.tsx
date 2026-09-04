@@ -48,16 +48,6 @@ const demoBatches = [
     label: 'Demo 1 — Evaluation',
     files: ['settlement.csv', 'bank.csv', 'ledger.csv'],
   },
-  {
-    id: 'demo-2',
-    label: 'Demo 2',
-    files: ['settlement-2.csv', 'bank-2.csv', 'ledger-2.csv'],
-  },
-  {
-    id: 'demo-3',
-    label: 'Demo 3',
-    files: ['settlement-3.csv', 'bank-3.csv', 'ledger-3.csv'],
-  },
 ];
 
 // ─── Upload Page ─────────────────────────────────────────────────────
