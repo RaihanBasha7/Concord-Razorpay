@@ -43,7 +43,7 @@ export function AuditTrail() {
     <>
       <Topbar title="Routing Decisions" subtitle="Per-record routing outcomes from the reconciliation pipeline." />
       <PageTransition>
-        <div className="flex-1 p-6 max-w-5xl">
+        <div className="flex-1 p-6 max-w-5xl w-full mx-auto">
           {loading ? (
             <div className="panel overflow-hidden">
               <div className="px-5 py-4 border-b border-amber-500/10 flex items-center justify-between">

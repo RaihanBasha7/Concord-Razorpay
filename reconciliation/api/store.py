@@ -73,22 +73,74 @@ class BatchStore:
             );
             """
         )
+
+        # Migration: add the content-fingerprint column to batches for
+        # older databases created before batch idempotency.
+        columns = {
+            r["name"]
+            for r in self._conn.execute("PRAGMA table_info(batches)").fetchall()
+        }
+        if "fingerprint" not in columns:
+            self._conn.execute("ALTER TABLE batches ADD COLUMN fingerprint TEXT")
+
+        # DB-enforced uniqueness on the batch fingerprint: the same
+        # three-file content can therefore never produce two logical
+        # batches, even under concurrent requests. NULL fingerprints
+        # (legacy batches) are exempt via the partial index.
+        self._conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_batches_fingerprint "
+            "ON batches(fingerprint) WHERE fingerprint IS NOT NULL"
+        )
         self._conn.commit()
 
     # ------------------------------------------------------------------
     # Batch lifecycle
     # ------------------------------------------------------------------
 
-    def create_batch(self) -> str:
-        """Create a new batch in 'processing' state. Returns the batch ID."""
+    def create_batch(self, fingerprint: str | None = None) -> str:
+        """Create a new batch in 'processing' state. Returns the batch ID.
+
+        ``fingerprint`` is the deterministic content hash of the three-file
+        batch; a unique partial index prevents duplicate batches with the
+        same fingerprint (raises ``sqlite3.IntegrityError`` on conflict).
+        """
         batch_id = uuid.uuid4().hex
         now = datetime.now(timezone.utc).isoformat()
         self._conn.execute(
-            "INSERT INTO batches (id, status, created_at, record_count) VALUES (?, 'processing', ?, 0)",
-            (batch_id, now),
+            "INSERT INTO batches (id, status, created_at, record_count, fingerprint) "
+            "VALUES (?, 'processing', ?, 0, ?)",
+            (batch_id, now, fingerprint),
         )
         self._conn.commit()
         return batch_id
+
+    def get_batch_by_fingerprint(
+        self, fingerprint: str
+    ) -> Optional[Dict[str, Any]]:
+        """Retrieve a batch by its content fingerprint, or None."""
+        row = self._conn.execute(
+            "SELECT * FROM batches WHERE fingerprint=?", (fingerprint,)
+        ).fetchone()
+        return dict(row) if row else None
+
+    def reset_failed_batch(self, batch_id: str) -> None:
+        """Re-arm a previously failed batch for a retry of the same upload.
+
+        Keeps the same row (and fingerprint) so the unique index remains
+        the single source of truth; clears error state and artifact residue
+        from the failed attempt.
+        """
+        now = datetime.now(timezone.utc).isoformat()
+        self._conn.execute(
+            "UPDATE batches SET status='processing', completed_at=NULL, "
+            "error_message=NULL WHERE id=?",
+            (batch_id,),
+        )
+        self._conn.execute("DELETE FROM routing_decisions WHERE batch_id=?", (batch_id,))
+        self._conn.execute("DELETE FROM batch_json WHERE batch_id=?", (batch_id,))
+        self._conn.execute("DELETE FROM audit_records WHERE batch_id=?", (batch_id,))
+        # Keep created_at so the retry preserves the original attempt time.
+        self._conn.commit()
 
     def complete_batch(self, batch_id: str, record_count: int) -> None:
         """Mark a batch as completed with the total record count."""
@@ -114,6 +166,43 @@ class BatchStore:
             "SELECT * FROM batches WHERE id=?", (batch_id,)
         ).fetchone()
         return dict(row) if row else None
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Aggregate statistics across all persisted completed batches.
+
+        This is the backend source of truth for the dashboard: totals are
+        reconstructed from the database on every call, so they survive
+        refreshes and backend restarts.  Failed/processing batches are
+        excluded from aggregates.
+        """
+        total_records = self._conn.execute(
+            "SELECT COALESCE(SUM(record_count), 0) FROM batches "
+            "WHERE status='completed'"
+        ).fetchone()[0]
+
+        batch_count = self._conn.execute(
+            "SELECT COUNT(*) FROM batches WHERE status='completed'"
+        ).fetchone()[0]
+
+        latest = self._conn.execute(
+            "SELECT id FROM batches WHERE status='completed' "
+            "ORDER BY created_at DESC, rowid DESC LIMIT 1"
+        ).fetchone()
+
+        composition_rows = self._conn.execute(
+            "SELECT r.bucket, COUNT(*) AS count FROM routing_decisions r "
+            "JOIN batches b ON b.id = r.batch_id "
+            "WHERE b.status='completed' GROUP BY r.bucket"
+        ).fetchall()
+
+        return {
+            "total_record_count": total_records,
+            "batch_count": batch_count,
+            "routing_composition": {
+                r["bucket"]: r["count"] for r in composition_rows
+            },
+            "latest_batch_id": latest["id"] if latest else None,
+        }
 
     # ------------------------------------------------------------------
     # Routing decisions

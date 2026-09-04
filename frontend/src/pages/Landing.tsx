@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll } from 'framer-motion';
 import { ShieldCheck, ArrowRight, ArrowDown, CheckCircle2, Brain, Shield, FileCheck2 } from 'lucide-react';
 import { ReconciliationOrbit } from '@/components/visual/ReconciliationOrbit';
+import { Reveal } from '@/components/ui/Reveal';
 import { useAmbientGlow } from '@/hooks/useMouseInteraction';
 
 export function Landing() {
@@ -161,12 +162,7 @@ function ProblemSection() {
   return (
     <section id="problem" className="relative py-24 px-6 border-t border-amber-500/10">
       <div className="max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal>
           <div className="text-xs text-amber-500/70 tracking-widest uppercase mb-3">Section 02 — The Problem</div>
           <h2 className="text-hero font-semibold text-cream-50 tracking-tight mb-4">
             A residual isn't one problem.
@@ -175,17 +171,16 @@ function ProblemSection() {
             Same residual event, different resolution path. Deterministic rules break down at the edges —
             and that's where most reconciliation teams lose hours to spreadsheets.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Failure types */}
         <div className="space-y-3 mb-12">
           {failureTypes.map((ft, i) => (
-            <motion.div
+            <Reveal
               key={ft.label}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
+              from="left"
+              duration={0.4}
+              delay={i * 0.1}
               className="panel panel-hover p-4 flex items-center gap-4 transition-all duration-200"
             >
               <span className="mono text-xs text-amber-500/50 w-8">0{i + 1}</span>
@@ -193,18 +188,12 @@ function ProblemSection() {
                 <div className="text-sm font-semibold text-cream-100">{ft.label}</div>
                 <div className="text-xs text-cream-500/70 mt-0.5">{ft.desc}</div>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
         {/* Contrast: Naive vs Concord */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
+        <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Naive */}
           <div className="rounded-xl2 border border-cream-500/10 bg-ink-900 p-5 opacity-60">
             <div className="text-xs text-cream-500/60 tracking-wide uppercase mb-3">Naive Reconciliation</div>
@@ -232,7 +221,7 @@ function ProblemSection() {
               <span className="text-signal-matched">RESOLVE OR ESCALATE</span>
             </div>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );
@@ -269,26 +258,20 @@ function HowItWorksSection() {
   return (
     <section id="how" className="relative py-24 px-6 border-t border-amber-500/10">
       <div className="max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal>
           <div className="text-xs text-amber-500/70 tracking-widest uppercase mb-3">Section 03 — How Concord Works</div>
           <h2 className="text-hero font-semibold text-cream-50 tracking-tight mb-4">
             Every match has a reason.
           </h2>
-        </motion.div>
+        </Reveal>
 
         <div className="space-y-4 mt-12">
           {steps.map((step, i) => (
-            <motion.div
+            <Reveal
               key={step.num}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
+              from="left"
+              duration={0.4}
+              delay={i * 0.1}
               className="panel panel-hover p-5 flex items-start gap-5 transition-all duration-200"
             >
               <div className="w-12 h-12 rounded-xl2 bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
@@ -301,23 +284,17 @@ function HowItWorksSection() {
                 </div>
                 <p className="text-sm text-cream-400 leading-relaxed">{step.desc}</p>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
         {/* Bottom line */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-12 text-center"
-        >
+        <Reveal from="none" delay={0.3} className="mt-12 text-center">
           <p className="text-xl text-cream-100 font-medium">
             AI where judgment helps.{' '}
             <span className="text-amber-500">Rules where the ledger is concerned.</span>
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );
@@ -336,12 +313,7 @@ function ProductPreviewSection() {
   return (
     <section id="preview" className="relative py-24 px-6 border-t border-amber-500/10">
       <div className="max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal>
           <div className="text-xs text-amber-500/70 tracking-widest uppercase mb-3">Section 04 — Product Preview</div>
           <h2 className="text-hero font-semibold text-cream-50 tracking-tight mb-4">
             Meet the Reconciliation Command Center.
@@ -349,16 +321,10 @@ function ProductPreviewSection() {
           <p className="text-lg text-cream-400 max-w-2xl mb-8">
             One queue. Every decision explained.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Preview panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="panel-elevated overflow-hidden shadow-glow"
-        >
+        <Reveal duration={0.6} className="panel-elevated overflow-hidden shadow-glow">
           {/* Preview header */}
           <div className="px-5 py-4 border-b border-amber-500/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -409,7 +375,7 @@ function ProductPreviewSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </Reveal>
 
         <div className="text-center mt-6">
           <Link to="/app" className="btn-primary">
@@ -437,12 +403,7 @@ function FinalCTA() {
       <div className="absolute inset-0 noise-bg" />
 
       <div className="relative z-10 max-w-3xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
+        <Reveal duration={0.6}>
           <h2 className="text-hero font-semibold text-cream-50 tracking-tight mb-4">
             Resolve what the spreadsheet couldn't.
           </h2>
@@ -455,7 +416,7 @@ function FinalCTA() {
           <p className="text-xs text-cream-500/50 mt-4">
             Synthetic evaluation data available · Built for the Razorpay AI Buildathon
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

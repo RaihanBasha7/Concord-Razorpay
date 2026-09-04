@@ -9,6 +9,7 @@ import type {
   BatchResultsResponse,
   BatchEvalResponse,
   RecordDetailResponse,
+  BatchSummaryResponse,
   HealthResponse,
 } from '@/lib/types';
 
@@ -57,6 +58,13 @@ export async function uploadBatch(
     method: 'POST',
     body: form,
   });
+}
+
+/**
+ * GET /batches/summary — aggregate statistics across all completed batches.
+ */
+export async function getBatchSummary(): Promise<BatchSummaryResponse> {
+  return request<BatchSummaryResponse>('/batches/summary');
 }
 
 /**

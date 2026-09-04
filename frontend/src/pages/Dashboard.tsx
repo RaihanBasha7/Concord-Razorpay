@@ -7,17 +7,14 @@ import { StatusPill, RoutingReasonBadge } from '@/components/ui/StatusPill';
 import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
 import { PageTransition, StaggerGroup, StaggerItem, MetricCardSkeleton } from '@/components/ui/Transitions';
 import { useTilt } from '@/hooks/useMouseInteraction';
-import { getBatchStatus, getBatchResults } from '@/api/concord';
-import type { BatchStatusResponse, RoutingRecord } from '@/lib/types';
+import { getBatchSummary, getBatchStatus, getBatchResults } from '@/api/concord';
+import type { BatchStatusResponse, BatchSummaryResponse, RoutingRecord } from '@/lib/types';
 
 const LAST_BATCH_KEY = 'concord:lastBatchId';
 
-function getStoredBatchId(): string | null {
-  return localStorage.getItem(LAST_BATCH_KEY);
-}
-
 export function Dashboard() {
   const navigate = useNavigate();
+  const [summary, setSummary] = useState<BatchSummaryResponse | null>(null);
   const [batch, setBatch] = useState<BatchStatusResponse | null>(null);
   const [records, setRecords] = useState<RoutingRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +23,19 @@ export function Dashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const batchId = getStoredBatchId();
-        if (!batchId) {
+        // Aggregate totals come from the backend so they are reconstructed
+        // from persisted state on every load — never added up on the client.
+        const summary = await getBatchSummary();
+        if (summary.batch_count === 0) {
           setError('No batches found. Upload a batch to get started.');
+          setLoading(false);
+          return;
+        }
+        setSummary(summary);
+
+        // Pipeline flow + recent records stay bound to the latest batch.
+        const batchId = summary.latest_batch_id ?? localStorage.getItem(LAST_BATCH_KEY);
+        if (!batchId) {
           setLoading(false);
           return;
         }
@@ -64,7 +71,7 @@ export function Dashboard() {
     );
   }
 
-  if (error || !batch) {
+  if (error || !summary) {
     return (
       <>
         <Topbar title="Reconciliation Command Center" subtitle="Monitor unresolved records and the decisions Concord is making." />
@@ -81,8 +88,9 @@ export function Dashboard() {
     );
   }
 
-  const comp = batch.routing_composition;
-  const total = batch.record_count;
+  const comp = summary.routing_composition;
+  const total = summary.total_record_count;
+  const batchCount = summary.batch_count;
   const matched = comp.DETERMINISTIC_MATCH ?? 0;
   const aiAccepted = comp.AI_AUTO_ACCEPTED ?? 0;
   const review = comp.HUMAN_REVIEW ?? 0;
@@ -97,14 +105,14 @@ export function Dashboard() {
       <Topbar title="Reconciliation Command Center" subtitle="Monitor unresolved records and the decisions Concord is making." />
       <PageTransition>
         <div className="flex-1 p-6 space-y-6">
-          {/* Metrics */}
+          {/* Metrics — aggregates across all completed batches */}
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StaggerItem>
               <MetricCard
                 label="Total Records"
                 value={<AnimatedNumber value={total} />}
                 icon={<ShieldCheck className="w-4 h-4" />}
-                sublabel={`Batch ${batch.batch_id.slice(0, 8)}…`}
+                sublabel={`Across ${batchCount} completed batch${batchCount === 1 ? '' : 'es'}`}
               />
             </StaggerItem>
             <StaggerItem>
@@ -147,12 +155,14 @@ export function Dashboard() {
             </StaggerItem>
           </StaggerGroup>
 
-          {/* Pipeline flow diagram */}
-          <StaggerItem>
-            <PipelineFlow batch={batch} />
-          </StaggerItem>
+          {/* Pipeline flow diagram — latest batch */}
+          {batch && (
+            <StaggerItem>
+              <PipelineFlow batch={batch} />
+            </StaggerItem>
+          )}
 
-          {/* Recent records preview */}
+          {/* Recent records preview — latest batch */}
           {recentRecords.length > 0 && (
             <StaggerItem>
               <div className="panel overflow-hidden">
@@ -269,7 +279,9 @@ function PipelineFlow({ batch }: { batch: BatchStatusResponse }) {
     <div className="panel p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-cream-100 tracking-wide">Pipeline Flow</h2>
-        <span className="text-[10px] text-cream-500/50 tracking-widest uppercase">Layer 1 → Layer 2 → Layer 3 → Route</span>
+        <span className="text-[10px] text-cream-500/50 tracking-widest uppercase">
+          Latest batch {batch.batch_id.slice(0, 8)}… · Layer 1 → Layer 2 → Layer 3 → Route
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <FlowStep label="Ingested" value={total} pct={100} color="bg-cream-400" delay={0} />

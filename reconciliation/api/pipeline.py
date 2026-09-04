@@ -12,6 +12,7 @@ remains completely independent of FastAPI.
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import logging
 from dataclasses import dataclass, field
@@ -22,6 +23,7 @@ from pathlib import Path
 
 from reconciliation.domain.models import NormalizedRecord, SourceType
 from reconciliation.frozen_dataset import (
+    compute_upload_fingerprint,
     frozen_artifact_summary,
     load_frozen_l2_outcomes,
     verify_upload_against_manifest,
@@ -58,6 +60,35 @@ _REQUIRED_COLUMN_GROUPS: Dict[SourceType, Dict[str, Tuple[str, ...]]] = {
         "date": ("transaction_date",),
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# Batch content fingerprint
+# ---------------------------------------------------------------------------
+
+
+def compute_batch_fingerprint(
+    settlement_bytes: bytes,
+    bank_bytes: bytes,
+    ledger_bytes: bytes,
+) -> str:
+    """Deterministic fingerprint of a complete three-file batch.
+
+    Canonical combination:
+
+        SHA256(SHA256(settlement_bytes) + SHA256(bank_bytes) + SHA256(ledger_bytes))
+
+    The fingerprint is derived purely from file contents, never filenames,
+    so re-uploading the same three files (or renaming them) yields the same
+    fingerprint, while any content change yields a different one.
+    """
+    per_file = compute_upload_fingerprint(
+        settlement_bytes, bank_bytes, ledger_bytes
+    )
+    canonical = "".join(
+        per_file[key] for key in ("settlements.csv", "bank.csv", "ledger.csv")
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 # ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ logic lives in route handlers.
 from __future__ import annotations
 
 import logging
+import sqlite3
 from typing import Optional
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
@@ -15,6 +16,7 @@ from fastapi.responses import JSONResponse
 
 from reconciliation.api.pipeline import (
     CSVValidationError,
+    compute_batch_fingerprint,
     read_csv_content,
     run_batch_pipeline,
 )
@@ -49,6 +51,40 @@ def create_router(
 
     router = APIRouter()
 
+    def _duplicate_response(batch: dict):
+        """Response for an idempotent re-upload of an already-processed batch.
+
+        Uses the same shape as a fresh success so the client contract is
+        unchanged, plus ``duplicate``/``message`` so the UI can tell users
+        the upload was a no-op pointing at the existing batch.
+        """
+        return JSONResponse(
+            status_code=201,
+            content={
+                "batch_id": batch["id"],
+                "status": "completed",
+                "record_count": batch["record_count"],
+                "duplicate": True,
+                "message": (
+                    "These files were already processed — returning the "
+                    "existing batch."
+                ),
+            },
+        )
+
+    # ------------------------------------------------------------------
+    # GET /batches/summary
+    # ------------------------------------------------------------------
+
+    @router.get("/summary")
+    async def get_summary():
+        """Aggregate statistics across all persisted, completed batches.
+
+        Reconstructed from the database on every request, so dashboard
+        totals survive refreshes and backend restarts.
+        """
+        return store.get_summary()
+
     # ------------------------------------------------------------------
     # POST /batches
     # ------------------------------------------------------------------
@@ -60,15 +96,70 @@ def create_router(
         ledger: UploadFile = File(..., description="Ledger CSV file"),
     ):
         """Accept three CSV inputs, run the reconciliation pipeline,
-        persist results, and return a batch ID."""
-        batch_id = store.create_batch()
+        persist results, and return a batch ID.
+
+        Idempotency: the same three-file content (verified by a SHA-256
+        fingerprint over the raw CSV bytes) maps to exactly one logical
+        batch.  Re-uploading an already-processed batch returns the
+        existing batch with ``duplicate: true`` instead of creating a
+        second one; genuinely new content creates a new batch.
+        """
+        # Read raw bytes from uploads first so the fingerprint is computed
+        # from actual file content, not filenames or stream metadata.
+        settlement_content = await settlement.read()
+        bank_content = await bank.read()
+        ledger_content = await ledger.read()
+
+        batch_fingerprint = compute_batch_fingerprint(
+            settlement_content, bank_content, ledger_content
+        )
+
+        # Idempotency pre-check against persisted batches.
+        existing = store.get_batch_by_fingerprint(batch_fingerprint)
+        if existing is not None and existing["status"] == "completed":
+            return _duplicate_response(existing)
+
+        if existing is not None and existing["status"] == "failed":
+            # Retry of a previously failed upload: reuse the same row so the
+            # unique fingerprint index stays consistent and no residue from
+            # the failed attempt is left behind.
+            batch_id = existing["id"]
+            store.reset_failed_batch(batch_id)
+        elif existing is not None:
+            # A batch with this content is already processing (concurrent
+            # duplicate upload). Do not create another one.
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "batch_id": existing["id"],
+                    "detail": "A batch with these files is already being processed.",
+                    "error_type": "duplicate_in_progress",
+                },
+            )
+        else:
+            try:
+                batch_id = store.create_batch(batch_fingerprint)
+            except sqlite3.IntegrityError:
+                # Lost a concurrent insert race; the unique index picked the
+                # winner. Re-fetch and return that batch.
+                winner = store.get_batch_by_fingerprint(batch_fingerprint)
+                if winner is not None and winner["status"] == "completed":
+                    return _duplicate_response(winner)
+                if winner is not None:
+                    return JSONResponse(
+                        status_code=409,
+                        content={
+                            "batch_id": winner["id"],
+                            "detail": (
+                                "A batch with these files is already being "
+                                "processed."
+                            ),
+                            "error_type": "duplicate_in_progress",
+                        },
+                    )
+                raise
 
         try:
-            # Read raw bytes from uploads.
-            settlement_content = await settlement.read()
-            bank_content = await bank.read()
-            ledger_content = await ledger.read()
-
             # Parse and validate CSV structure.
             settlement_rows = read_csv_content(
                 settlement_content, SourceType.SETTLEMENT

@@ -22,6 +22,7 @@ type Phase = 'idle' | 'uploading' | 'done' | 'error';
 interface UploadResult {
   batchId: string;
   total: number;
+  duplicate?: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -38,6 +39,26 @@ function blobToFile(blob: Blob, name: string): File {
   Object.defineProperty(f, 'name', { value: name, writable: false });
   return f;
 }
+
+// ─── Demo fixtures ──────────────────────────────────────────────────
+
+const demoBatches = [
+  {
+    id: 'demo-1',
+    label: 'Demo 1 — Evaluation',
+    files: ['settlement.csv', 'bank.csv', 'ledger.csv'],
+  },
+  {
+    id: 'demo-2',
+    label: 'Demo 2',
+    files: ['settlement-2.csv', 'bank-2.csv', 'ledger-2.csv'],
+  },
+  {
+    id: 'demo-3',
+    label: 'Demo 3',
+    files: ['settlement-3.csv', 'bank-3.csv', 'ledger-3.csv'],
+  },
+];
 
 // ─── Upload Page ─────────────────────────────────────────────────────
 
@@ -70,7 +91,7 @@ export function Upload() {
     try {
       const res = await uploadBatch(settlementFile, bankFile, ledgerFile);
       localStorage.setItem('concord:lastBatchId', res.batch_id);
-      setResult({ batchId: res.batch_id, total: res.record_count });
+      setResult({ batchId: res.batch_id, total: res.record_count, duplicate: res.duplicate });
       setPhase('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -78,13 +99,13 @@ export function Upload() {
     }
   }, [settlementFile, bankFile, ledgerFile]);
 
-  async function handleLoadDemo() {
+  async function handleLoadDemo(batch: (typeof demoBatches)[number]) {
     setLoadingDemo(true);
     try {
       const [sRes, bRes, lRes] = await Promise.all([
-        fetch('/fixtures/settlement.csv'),
-        fetch('/fixtures/bank.csv'),
-        fetch('/fixtures/ledger.csv'),
+        fetch(`/fixtures/${batch.files[0]}`),
+        fetch(`/fixtures/${batch.files[1]}`),
+        fetch(`/fixtures/${batch.files[2]}`),
       ]);
       if (!sRes.ok || !bRes.ok || !lRes.ok) {
         throw new Error('Failed to load demo fixtures');
@@ -94,9 +115,9 @@ export function Upload() {
         bRes.blob(),
         lRes.blob(),
       ]);
-      setSettlementFile(blobToFile(sBlob, 'settlement.csv'));
-      setBankFile(blobToFile(bBlob, 'bank.csv'));
-      setLedgerFile(blobToFile(lBlob, 'ledger.csv'));
+      setSettlementFile(blobToFile(sBlob, batch.files[0]));
+      setBankFile(blobToFile(bBlob, batch.files[1]));
+      setLedgerFile(blobToFile(lBlob, batch.files[2]));
     } catch {
       setError('Could not load demo fixtures. Make sure the dev server is running.');
       setPhase('error');
@@ -112,7 +133,7 @@ export function Upload() {
         subtitle="Submit settlement, bank, and ledger CSV files for reconciliation."
       />
       <PageTransition>
-        <div className="flex-1 p-6 max-w-3xl space-y-6">
+        <div className="flex-1 p-6 max-w-3xl w-full mx-auto space-y-6">
           {/* ── Upload form ──────────────────────────────────── */}
           {phase === 'idle' && (
             <div className="space-y-4">
@@ -160,25 +181,32 @@ export function Upload() {
               </div>
 
               {/* Demo data */}
-              <div className="panel p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-cream-100 font-medium">No CSVs handy?</div>
-                  <div className="text-[10px] text-cream-500/60 mt-0.5">
-                    Load the full 245-record evaluation dataset — Layer 2 results replay from the frozen artifact.
+              <div className="panel p-4">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div>
+                    <div className="text-xs text-cream-100 font-medium">No CSVs handy?</div>
+                    <div className="text-[10px] text-cream-500/60 mt-0.5">
+                      Load a synthetic demo batch — Layer 2 replay engages for the frozen evaluation dataset.
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={handleLoadDemo}
-                  disabled={loadingDemo}
-                  className="btn-ghost text-xs"
-                >
-                  {loadingDemo ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Download className="w-3.5 h-3.5" />
-                  )}
-                  Load Demo Data
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {demoBatches.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => handleLoadDemo(b)}
+                      disabled={loadingDemo}
+                      className="btn-ghost text-xs border border-amber-500/10 bg-ink-900"
+                    >
+                      {loadingDemo ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Download className="w-3.5 h-3.5" />
+                      )}
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -223,10 +251,12 @@ export function Upload() {
                 <CheckCircle2 className="w-10 h-10 text-signal-matched mb-4" />
               </motion.div>
               <h3 className="text-sm font-semibold text-cream-100 mb-1">
-                Batch processed successfully
+                {result.duplicate ? 'Batch already processed' : 'Batch processed successfully'}
               </h3>
               <p className="text-xs text-cream-500/70 mb-1">
-                {result.total} records reconciled through the pipeline.
+                {result.duplicate
+                  ? 'These files were already processed — returning the existing batch.'
+                  : `${result.total} records reconciled through the pipeline.`}
               </p>
               <p className="text-[10px] text-cream-500/50 mono mb-4">
                 batch {result.batchId}

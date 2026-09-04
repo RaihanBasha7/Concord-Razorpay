@@ -39,6 +39,19 @@ export interface BatchCreateResponse {
   batch_id: string;
   status: 'completed';
   record_count: number;
+  /** Present when the upload was an idempotent re-upload of an
+   * already-processed batch (the batch_id points at the existing batch). */
+  duplicate?: boolean;
+  message?: string;
+}
+
+// ─── GET /batches/summary ────────────────────────────────────────────
+
+export interface BatchSummaryResponse {
+  total_record_count: number;
+  batch_count: number;
+  routing_composition: Partial<Record<RoutingBucket, number>>;
+  latest_batch_id: string | null;
 }
 
 export interface BatchCreateError {

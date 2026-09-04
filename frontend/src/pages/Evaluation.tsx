@@ -45,7 +45,7 @@ export function Evaluation() {
     <>
       <Topbar title="Evaluation Dashboard" subtitle="Layer-by-layer reconciliation statistics for the current batch." />
       <PageTransition>
-        <div className="flex-1 p-6 space-y-6 max-w-5xl">
+        <div className="flex-1 p-6 space-y-6 max-w-5xl w-full mx-auto">
           {loading ? (
             <div className="space-y-6">
               <div className="space-y-4">
