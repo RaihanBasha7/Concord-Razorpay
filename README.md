@@ -122,7 +122,7 @@ Every record is assigned exactly one of four routing decisions:
 
 ### Naive baseline
 
-A simple amount+date matcher runs against the same dataset to establish a comparison baseline. It uses the same tolerance (100 paise, 2-day window) but no ambiguity protection — it accepts the first candidate it finds. This deliberately under-specifies the matching logic so Layer 1's deterministic precision can be measured against a minimal straw man, not against a competitor.
+A simple amount+date matcher runs against the same frozen dataset to establish a comparison baseline. It uses the same tolerance (100 paise, 2-day window) but no ambiguity protection — single-pass greedy closest-amount/date pairing (smallest amount difference, then date difference, never reconsidering a matched record). This deliberately under-specifies the matching logic so Layer 1's deterministic precision can be measured against a minimal straw man, not against a competitor. The computed comparison (pairs, precision, and scenario coverage for both matchers) is in the headline table below.
 
 ### Layer 2 artifact replay
 
@@ -135,28 +135,33 @@ When the frozen evaluation dataset is uploaded through the API, Concord does **n
 | Metric | Value |
 |--------|-------|
 | Total records | 245 (122 settlement + 81 bank + 42 ledger) |
-| Layer 1 matched records | 43 of 245 (17.6%) — deterministic, 100% precision, zero false positives |
+| Layer 1 matched records | 86 of 245 (35.1%) — deterministic, 100% precision (43/43 correct decisions), zero false positives |
 | Residual scenarios (Layer 2) | 77 of 77 evaluated (100% completeness) |
 | Layer 2 outcomes | 46 PROPOSAL_VALID, 16 NO_PROPOSAL, 15 API_ERROR |
 | Outcome-state classification | 26 CORRECT, 36 INCORRECT, 15 UNKNOWN (provider failures) |
 | Known outcome rate | 62/77 (80.5%) — provider failures never counted as TP/FP |
-| AI_AUTO_ACCEPTED | 15 — Layer 2 proposals with confidence ≥ 0.90, auto-accepted |
-| HUMAN_REVIEW | 30 — Layer 2 proposals with confidence 0.60–0.89, queued for review |
-| EXCEPTION | 32 — NO_PROPOSAL / API_ERROR / low-confidence outcomes |
+| AI_AUTO_ACCEPTED | 15 — scenario-level; Layer 2 proposals with confidence ≥ 0.90, auto-accepted (canonical artifact) |
+| HUMAN_REVIEW | 30 — scenario-level; Layer 2 proposals with confidence 0.60–0.89, queued for review (canonical artifact) |
+| EXCEPTION | 32 — scenario-level; NO_PROPOSAL / API_ERROR / low-confidence outcomes (canonical artifact) |
 | False accept rate | 6 / 15 known auto-accepted (40%) — see SPLIT_SETTLEMENT scoring below |
 | Outcome-level precision ≥ 0.90 | 60.0% (9 TP / 6 FP) |
 | Outcome-level precision ≥ 0.75 | 37.0% (10 TP / 17 FP) |
 | Outcome-level precision ≥ 0.60 | 22.2% (10 TP / 35 FP) |
-| Recall | NOT COMPUTABLE (see AI-recall methodology below) |
-| Layer 1-only baseline | 17.6% match rate (43/245) at 100% deterministic precision |
+| Recall | 77.8% (21/27) — proposal-level over attempted scenarios; DUPLICATE excluded and disclosed (including them: 71.4% = 25/35) — see AI-recall methodology below |
+| Layer 1-only baseline | 35.1% match rate (86/245) at 100% deterministic precision (43/43 correct decisions) |
+| Naive baseline | 35.1% record match rate (86/245); 43 pairs, 36 correct (83.7% pair precision); touches 48/120 scenarios (40.0%) at 75.0% scenario precision |
 
-**False-accept accounting (corrected).** Of the 15 auto-accepted Layer 2 outcomes, 9 are SPLIT_SETTLEMENT scenarios whose proposals were verified against ground truth and are scored CORRECT (see [SPLIT_SETTLEMENT scenario scoring](#split_settlement-scenario-scoring)); the 6 false accepts are 2 DUPLICATE (`DUP-002`, `DUP-004`), 3 LATE_ARRIVING (`LATE-005`, `LATE-008`, `LATE-010`), and 1 PARTIAL_REFUND (`REFD-010`). At the record level, the production pipeline additionally runs every proposal through deterministic Layer 3 guardrails — the same-source-duplicate guardrail rejects the DUP proposals and the financial-evidence guardrail rejects the LATE/REFD proposals — so no false accept reaches `AI_AUTO_ACCEPTED` in production (the live pipeline auto-accepts 24 records, all SPLIT_SETTLEMENT).
+**Granularity note.** The `AI_AUTO_ACCEPTED` / `HUMAN_REVIEW` / `EXCEPTION` rows above are **scenario-level** counts from the canonical artifact (one bucket per evaluated scenario; `DETERMINISTIC_MATCH` is 0 at this level because Layer 1 is an earlier, separate stage). At the **record level**, a live upload of the frozen dataset through the API routes all 245 records (`/batches/{id}/eval` → `layer3_routing_composition`): DETERMINISTIC_MATCH 86, AI_AUTO_ACCEPTED 24, HUMAN_REVIEW 48, EXCEPTION 87. Both sets are current — scenario-level from `data/current_evaluation_report.json` (`routing_buckets`), record-level from the live pipeline — and they are not interchangeable.
+
+**False-accept accounting (corrected).** Of the 15 auto-accepted Layer 2 outcomes, 9 are SPLIT_SETTLEMENT scenarios whose proposals were verified against ground truth and are scored CORRECT (see [SPLIT_SETTLEMENT scenario scoring](#split_settlement-scenario-scoring)); the 6 false accepts are 2 DUPLICATE (`DUP-002`, `DUP-004`), 3 LATE_ARRIVING (`LATE-005`, `LATE-008`, `LATE-010`), and 1 PARTIAL_REFUND (`REFD-010`). At the record level, the production pipeline additionally runs every proposal through deterministic Layer 3 guardrails — the same-source-duplicate guardrail rejects the DUP proposals and the financial-evidence guardrail rejects the LATE/REFD proposals — so no false accept reaches `AI_AUTO_ACCEPTED` in production — a live upload of the frozen dataset auto-accepts exactly 24 records, all SPLIT_SETTLEMENT (record-level; see the granularity note above).
 
 The Layer 1 deterministic matcher trades coverage for precision: it never produces a false positive. The canonical Layer 2 artifact contains 46 genuine Groq proposals from all 77 residual scenarios. After deterministic deduplication in the loading code, these PROPOSAL_VALID outcomes route records to AI buckets via Layer 3 guardrails. The 15 API_ERROR and 16 NO_PROPOSAL residuals route to EXCEPTION — these represent genuine provider failures and correctly-refused matches, not a workload backlog.
 
 ### AI-recall methodology
 
-AI recall is reported as two numbers — **system-wide** and **attempted-only** — because in a financial reconciliation system "we didn't try" and "we tried and got it wrong" are different failure modes with different fixes. System-wide recall counts every residual scenario with a real match in the denominator, including provider failures (`API_ERROR`); under a total Layer 2 outage it reports 0%, not N/A, so the operational safety metric never goes silent during the worst case. Attempted-only recall excludes provider failures and measures model quality when Layer 2 actually ran. Both numbers appear in every evaluation report. A system-wide recall of 0% with an attempted-only recall of 80% would tell you the model is decent but the infrastructure is down; a system-wide recall of 80% with an attempted-only recall of 80% would tell you the model runs reliably. Neither number alone tells the full story.
+Recall is reported as **proposal-level Layer 2 recall over attempted scenarios**, computed from the canonical artifact (`data/layer2_clean_audit.jsonl`). The artifact's `correlation_id` maps directly to the ground-truth `scenario_id`, and expected match record IDs are derived from each scenario's `record_specs` via the `synthetic_ref → record_id` construction (`_compute_record_id`) proven in `tests/unit/test_evaluation_accounting.py`. The denominator is the set of residual scenarios with `has_real_match: true` that Layer 2 actually attempted (outcomes `PROPOSAL_VALID`, `NO_PROPOSAL`, `VALIDATION_FAILED`).
+
+We distinguish what we could and couldn't measure the same way the pipeline does operationally: provider failures (`API_ERROR` / `TIMEOUT`) are excluded because Layer 2 never ran on them — "we tried and got it wrong" is counted against recall, while "we couldn't try" is tracked separately (`layer2.provider_failure`) and never counted as correct or incorrect. `DUPLICATE` scenarios are excluded from the denominator because duplicate detection's scoring semantics are a documented open question (see [DUPLICATE scenario scoring](#duplicate-scenario-scoring)); they are disclosed rather than silently included, and the value including them is reported for transparency. The current result is **21 / 27 = 77.8%**; including the 8 excluded DUPLICATE scenarios (4 of which were correctly proposed) it would be **25 / 35 = 71.4%**. Proposal-level precision is NOT COMPUTABLE in this report — only proposal-level recall is computed.
 
 ### DUPLICATE scenario scoring
 
