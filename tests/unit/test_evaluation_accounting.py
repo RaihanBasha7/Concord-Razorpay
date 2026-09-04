@@ -677,18 +677,28 @@ class TestProviderFailureAccounting:
         assert pf["transient"] == 7
         assert pf["unknown"] == 1
 
-    def test_recall_reported_not_computable(self):
-        """Recall must be explicitly NOT_COMPUTABLE with explanation."""
+    def test_recall_reported_computed(self):
+        """Recall must be computed from the artifact via the correlation_id ->
+        scenario_id -> expected_match_ids mapping (regression: this was
+        previously reported NOT_COMPUTABLE even though the mapping exists)."""
         report_path = Path("data/current_evaluation_report.json")
         report = json.loads(report_path.read_text())
 
         recall = report["recall"]
-        assert recall["status"] == "NOT_COMPUTABLE", (
-            f"Recall status should be NOT_COMPUTABLE, got {recall['status']}"
+        assert recall["status"] == "COMPUTED", (
+            f"Recall status should be COMPUTED, got {recall['status']}"
         )
-        assert recall["value"] is None
-        assert "normalization mapping" in recall["note"].lower()
-        assert "synthetic_ref" in recall["note"]
+        # 21/27 = 77.8%: attempted real-match residual scenarios, excluding
+        # the DUPLICATE category (documented duplicate-scoring ambiguity).
+        assert recall["true_positives"] == 21, (
+            f"Expected 21 true positives, got {recall['true_positives']}"
+        )
+        assert recall["denominator"] == 27, (
+            f"Expected denominator 27, got {recall['denominator']}"
+        )
+        assert recall["value"] == pytest.approx(21 / 27)
+        assert "DUPLICATE" in recall["excluded_categories"]
+        assert "correlation_id" in recall["note"].lower()
 
     def test_precision_is_outcome_level_not_proposal_level(self):
         """Precision metrics must be labeled as outcome-level, not proposal-level."""

@@ -21,10 +21,16 @@
   "layer2_missing": 0,
   "missing_scenario_ids": [],
   "layer1": {
-    "matched_records": 43,
+    "decisions": 43,
+    "matched_scenarios": 43,
+    "matched_records": 86,
     "residual_records": 159,
     "residual_scenarios": 77,
-    "match_rate_records": 0.17551020408163265
+    "scenario_match_rate": 0.35833333333333334,
+    "record_match_rate": 0.3510204081632653,
+    "correct_decisions": 43,
+    "precision": 1.0,
+    "note": "Scenario-level counts are distinct ground-truth scenarios owning at least one matched record; record-level counts are unique records covered by a Layer 1 decision. A decision is a matched pair (exactly 2 member records)."
   },
   "layer2": {
     "outcomes_by_type": {
@@ -56,7 +62,7 @@
     "false_positive": 6,
     "precision": 0.6,
     "known_outcome_rate": 1.0,
-    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level (match-ID-level) precision is NOT COMPUTABLE in this report: only proposal-level recall is computed (see 'recall'); proposal-level precision is not among the metrics computed here."
   },
   "precision_at_0_75": {
     "total_eligible": 27,
@@ -66,7 +72,7 @@
     "false_positive": 17,
     "precision": 0.37037037037037035,
     "known_outcome_rate": 1.0,
-    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level (match-ID-level) precision is NOT COMPUTABLE in this report: only proposal-level recall is computed (see 'recall'); proposal-level precision is not among the metrics computed here."
   },
   "precision_at_0_60": {
     "total_eligible": 45,
@@ -76,14 +82,87 @@
     "false_positive": 35,
     "precision": 0.2222222222222222,
     "known_outcome_rate": 1.0,
-    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level precision is NOT COMPUTABLE (synthetic record IDs in artifact cannot map to ground truth record_specs)."
+    "note": "Outcome-level precision at threshold. Provider failures (UNKNOWN) are excluded from TP/FP and tracked in unknown_correctness. Proposal-level (match-ID-level) precision is NOT COMPUTABLE in this report: only proposal-level recall is computed (see 'recall'); proposal-level precision is not among the metrics computed here."
   },
   "recall": {
-    "status": "NOT_COMPUTABLE",
-    "value": null,
-    "true_positives": 0,
-    "denominator": 0,
-    "note": "Proposal-level recall is NOT COMPUTABLE because synthetic record IDs in the artifact (e.g., 'SETTLEMENT-xxx') cannot be mapped back to ground_truth record_specs (which use synthetic_refs like 'REC-SET-001'). The normalization mapping is not present in the artifact. Minimal fix: include 'synthetic_ref' in each audit record or a 'normalization_map' in the artifact header."
+    "status": "COMPUTED",
+    "value": 0.7777777777777778,
+    "true_positives": 21,
+    "denominator": 27,
+    "excluded_categories": [
+      "DUPLICATE"
+    ],
+    "excluded_scenarios": 8,
+    "excluded_correct": 4,
+    "denominator_including_excluded": 35,
+    "true_positives_including_excluded": 25,
+    "recall_including_excluded": 0.7142857142857143,
+    "missed_scenarios": [
+      {
+        "scenario_id": "FEE-003",
+        "category": "FEE_DEDUCTED",
+        "outcome": "NO_PROPOSAL",
+        "expected_match_ids": [
+          "BANK-b4e10c5d798e",
+          "SETTLEMENT-facad8fa263d"
+        ],
+        "proposed_match_ids": []
+      },
+      {
+        "scenario_id": "REFD-001",
+        "category": "PARTIAL_REFUND",
+        "outcome": "NO_PROPOSAL",
+        "expected_match_ids": [
+          "BANK-00381c963fd1",
+          "SETTLEMENT-3a72cea4d75b"
+        ],
+        "proposed_match_ids": []
+      },
+      {
+        "scenario_id": "REFD-005",
+        "category": "PARTIAL_REFUND",
+        "outcome": "NO_PROPOSAL",
+        "expected_match_ids": [
+          "BANK-79051a39439a",
+          "SETTLEMENT-1085d831ebf0"
+        ],
+        "proposed_match_ids": []
+      },
+      {
+        "scenario_id": "REFD-006",
+        "category": "PARTIAL_REFUND",
+        "outcome": "NO_PROPOSAL",
+        "expected_match_ids": [
+          "BANK-56e36ba9f5ac",
+          "SETTLEMENT-09d01b2ce924"
+        ],
+        "proposed_match_ids": []
+      },
+      {
+        "scenario_id": "REFD-008",
+        "category": "PARTIAL_REFUND",
+        "outcome": "NO_PROPOSAL",
+        "expected_match_ids": [
+          "BANK-ca678af238f8",
+          "SETTLEMENT-52a1f6790d27"
+        ],
+        "proposed_match_ids": []
+      },
+      {
+        "scenario_id": "REFD-010",
+        "category": "PARTIAL_REFUND",
+        "outcome": "PROPOSAL_VALID",
+        "expected_match_ids": [
+          "BANK-6ceaf4989c86",
+          "SETTLEMENT-a47c4bdff2b3"
+        ],
+        "proposed_match_ids": [
+          "BANK-c53b70a2bf6b",
+          "SETTLEMENT-a47c4bdff2b3"
+        ]
+      }
+    ],
+    "note": "Proposal-level Layer 2 recall computed from the artifact: correlation_id == ground_truth scenario_id, and expected match record IDs are derived from record_specs via the synthetic_ref -> record_id construction (_compute_record_id) already proven in tests/unit/test_evaluation_accounting.py. Denominator = residual scenarios with has_real_match=True that Layer 2 attempted (PROPOSAL_VALID / NO_PROPOSAL / VALIDATION_FAILED); provider failures (API_ERROR / TIMEOUT, i.e. not attempted) are excluded. Excluded from the denominator: DUPLICATE \u2014 duplicate detection's scoring semantics are a documented open question (README 'DUPLICATE scenario scoring'), so they are disclosed rather than silently included. For transparency, the value including the excluded category is reported in recall_including_excluded."
   },
   "outcome_level_metrics": {
     "matchable_scenarios": {
@@ -237,14 +316,34 @@
     "layer2_evaluated_in_artifact": 77
   },
   "baseline_comparison": {
-    "layer1_only_match_rate": 0.17551020408163265,
-    "layer1_deterministic_precision": 1.0,
-    "note": "Baseline comparison uses the Layer 1 deterministic matcher as the no-AI reference. Concord's hybrid (L1 + L2 + L3) is evaluated against it."
+    "naive_matcher": {
+      "match_pairs": 43,
+      "correct_pairs": 36,
+      "matched_records": 86,
+      "unmatched_records": 159,
+      "record_match_rate": 0.3510204081632653,
+      "matched_scenarios": 48,
+      "scenario_match_rate": 0.4,
+      "pair_precision": 0.8372093023255814,
+      "scenario_precision": 0.75
+    },
+    "layer1": {
+      "decisions": 43,
+      "matched_records": 86,
+      "matched_scenarios": 43,
+      "record_match_rate": 0.3510204081632653,
+      "scenario_match_rate": 0.35833333333333334,
+      "correct_decisions": 43,
+      "precision": 1.0
+    },
+    "match_rate_delta": -0.041666666666666685,
+    "precision_delta": 0.25,
+    "note": "Baseline = reconciliation.baseline.naive_matcher (single-pass greedy closest-amount/date pairing), run against the same frozen dataset. Layer 1 and the naive matcher both cover 86/245 records, but Layer 1 emits only unambiguous pairs: all 43 decisions match a ground-truth scenario relationship (100% precision), while the naive matcher's 43 pairs include 7 incorrect ones (83.7% pair precision). At the scenario level, Layer 1 matches 43/120 scenarios (35.8%) with 100% precision vs. the naive matcher's 48/120 touched scenarios (40.0%) at 75% precision \u2014 the extra coverage is entirely false cross-scenario pairs. This is the precision-over-coverage tradeoff Concord makes."
   },
   "completeness": 1.0,
   "limitations": [
     "FULL EVALUATION: 77/77 residual scenarios evaluated.",
-    "Provider failures (UNKNOWN) are explicitly tracked and excluded from correctness denominators. Proposal-level precision/recall are NOT COMPUTABLE without normalization mapping."
+    "Provider failures (UNKNOWN) are explicitly tracked and excluded from correctness denominators. Proposal-level recall is computed over attempted scenarios via the correlation_id -> scenario_id mapping; proposal-level precision is NOT COMPUTABLE in this report."
   ],
-  "generated_at": "2026-09-03T16:21:27.482289+00:00"
+  "generated_at": "2026-09-04T11:36:49.699491+00:00"
 }

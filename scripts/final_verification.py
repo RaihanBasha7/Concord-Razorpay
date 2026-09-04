@@ -85,23 +85,66 @@ def main() -> int:
         )
 
     section("3. Layer 2 evaluation status")
-    line(f"   Records in canonical artifact: {len(recs)} / 77")
-    line(f"   Status: PARTIAL ({len(recs)}/77; 32 missing due to Groq quota).")
-    line(f"   Missing scenario IDs:")
-    missing = [s for s in json.loads((DATA / "residuals.csv").read_text().splitlines()[0] and (DATA / "residuals.csv").read_text() or "[]")] if False else []
     residuals = []
     import csv
     with (DATA / "residuals.csv").open("r", encoding="utf-8", newline="") as fh:
         for row in csv.DictReader(fh):
             residuals.append(row["scenario_id"])
+    total_expected = int(canonical.get("total_expected", len(residuals)))
+    line(f"   Records in canonical artifact: {len(recs)} / {total_expected}")
     attempted_ids = {r["correlation_id"] for r in recs}
     missing_ids = [s for s in residuals if s not in attempted_ids]
-    line(f"     {len(missing_ids)} missing: {missing_ids[:10]}{'...' if len(missing_ids) > 10 else ''}")
+    if missing_ids:
+        line(
+            f"   Status: PARTIAL ({len(recs)}/{total_expected}; "
+            f"{len(missing_ids)} missing)."
+        )
+    else:
+        line(f"   Status: COMPLETE ({len(recs)}/{total_expected}).")
+    line("   Missing scenario IDs:")
+    line(
+        f"     {len(missing_ids)} missing: {missing_ids[:10]}"
+        f"{'...' if len(missing_ids) > 10 else ''}"
+    )
 
     section("4. Final canonical evaluation exists?")
-    final_status = manifest["final_canonical_artifact"]["status"]
+    final = manifest["final_canonical_artifact"]
+    final_status = str(final.get("status", "unknown"))
+    final_expected = final.get("total_expected")
+    final_filename = final.get("filename")
     line(f"   final_canonical_artifact.status = {final_status}")
-    line(f"   NO 77/77 final artifact exists. Evaluation remains PARTIAL.")
+    line(f"   final_canonical_artifact.record_count = {final.get('record_count')}")
+    line(f"   final_canonical_artifact.total_expected = {final_expected}")
+    on_disk_count = None
+    if final_filename and (DATA / final_filename).is_file():
+        on_disk_count = sum(
+            1
+            for l in (DATA / final_filename).read_text(encoding="utf-8").splitlines()
+            if l.strip()
+        )
+    line(f"   Records on disk in {final_filename}: {on_disk_count}")
+    counts_ok = (
+        on_disk_count is not None
+        and final_expected is not None
+        and on_disk_count == final_expected
+    )
+    if final_status.lower() == "final" and counts_ok:
+        line(f"   Evaluation status: FINAL ({on_disk_count}/{final_expected})")
+    elif on_disk_count is None:
+        line(f"   Evaluation status: PARTIAL ({final_filename} missing on disk).")
+    else:
+        line(f"   Evaluation status: PARTIAL ({on_disk_count}/{final_expected}).")
+    if (DATA / "current_evaluation_report.json").is_file():
+        report = json.loads(
+            (DATA / "current_evaluation_report.json").read_text(encoding="utf-8")
+        )
+        report_status = report.get("evaluation_status")
+        line(f"   current_evaluation_report.json evaluation_status = {report_status}")
+        report_final = str(report_status).lower() == "final"
+        line(
+            f"   Report status consistent with manifest final state: "
+            f"{report_final == (final_status.lower() == 'final' and counts_ok)}"
+        )
 
     section("5. pytest result")
     result = subprocess.run(
@@ -169,7 +212,19 @@ def main() -> int:
     line("   - No real credentials in any Git-tracked file")
     line("   - .env and frontend/.env are NOT Git-tracked")
     line("   - .gitignore excludes .env (allowing .env.example)")
-    line("   Result: 4 passed.")
+    result = subprocess.run(
+        ["python", "-m", "pytest", "tests/unit/test_secret_scan.py", "-q"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    last_lines = [l for l in result.stdout.splitlines() if l.strip()][-3:]
+    for l in last_lines:
+        line(f"   {l}")
+    if result.returncode != 0:
+        line("   Secret scan stderr (last 10 lines):")
+        for l in result.stderr.splitlines()[-10:]:
+            line(f"     {l}")
 
     section("10. Submission archive")
     zip_path = Path(__file__).resolve().parent.parent / "Concord_submission.zip"

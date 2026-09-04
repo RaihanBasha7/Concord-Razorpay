@@ -18,6 +18,7 @@ export type RoutingReason =
   | 'AI_CONFIDENT'
   | 'AI_NEEDS_REVIEW'
   | 'LOW_CONFIDENCE'
+  | 'LOW_EVIDENCE'
   | 'AI_RESPONSE_INVALID'
   | 'NO_CANDIDATE';
 

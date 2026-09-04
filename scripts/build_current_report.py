@@ -27,9 +27,25 @@ import hashlib
 import json
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+from reconciliation.baseline.naive_matcher import match as naive_match
+from reconciliation.domain.models import NormalizedRecord, SourceType
+from reconciliation.evaluation.dataset_generator import (
+    ExpectedLayer1Outcome,
+    GroundTruthScenario,
+    ScenarioRecordSpec,
+)
+from reconciliation.evaluation.full_pipeline_evaluation import (
+    _build_ground_truth_units,
+    _expected_match_ids,
+)
+from reconciliation.evaluation.ground_truth import EdgeCaseCategory, GroundTruthUnit
+from reconciliation.loader import load_normalized_records
+from reconciliation.matcher import reconcile
+from reconciliation.matcher_config import MatcherConfig
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -42,8 +58,17 @@ REPORT_JSON_PATH = DATA_DIR / "current_evaluation_report.json"
 REPORT_MD_PATH = DATA_DIR / "current_evaluation_report.md"
 
 TOTAL_RESIDUAL_SCENARIOS = 77
+TOTAL_RECORDS = 245  # canonical expected
+TOTAL_SCENARIOS = 120  # canonical expected
 AUTO_ACCEPT_THRESHOLD = 0.90
 REVIEW_THRESHOLD = 0.60
+
+# Ground-truth categories whose expected-match semantics are genuinely
+# ambiguous (per README "DUPLICATE scenario scoring": whether duplicate
+# detection should be scored as a match is a documented open question).
+# These categories are excluded from the recall denominator and disclosed
+# in the report note rather than silently dropped.
+RECALL_EXCLUDED_CATEGORIES = ("DUPLICATE",)
 
 
 class CurrentReportError(RuntimeError):
@@ -177,6 +202,308 @@ def _load_ground_truth() -> Dict[str, Dict[str, Any]]:
     for s in raw.get("scenarios", []):
         by_scenario[s["scenario_id"]] = s
     return by_scenario
+
+
+# ---------------------------------------------------------------------------
+# Real matcher / baseline / recall metrics (computed, never hardcoded)
+# ---------------------------------------------------------------------------
+
+
+def _scenario_from_gt_dict(d: Dict[str, Any]) -> GroundTruthScenario:
+    """Reconstruct a GroundTruthScenario from a ground_truth.json entry.
+
+    Missing optional fields default to neutral values so the constructor is
+    tolerant of minimal dicts (e.g. synthetic fixtures in tests); the real
+    ground_truth.json always carries the full fields.
+    """
+    return GroundTruthScenario(
+        scenario_id=d["scenario_id"],
+        category=EdgeCaseCategory(d["category"]),
+        record_specs=tuple(
+            ScenarioRecordSpec(
+                synthetic_ref=rs.get("synthetic_ref", ""),
+                source_type=SourceType(rs["source_type"]),
+                source_native_id=rs.get("source_native_id", ""),
+                order_id_hint=rs.get("order_id_hint"),
+                amount_paise=int(rs.get("amount_paise", 0)),
+                record_date=(
+                    date.fromisoformat(rs["record_date"])
+                    if rs.get("record_date")
+                    else date(2026, 8, 1)
+                ),
+                narration=rs.get("narration"),
+            )
+            for rs in d.get("record_specs", [])
+        ),
+        expected_outcome=ExpectedLayer1Outcome(d["expected_outcome"]),
+        has_real_match=d.get("has_real_match", False),
+        description=d.get("description", ""),
+    )
+
+
+def _ground_truth_scenarios(
+    ground_truth: Dict[str, Dict[str, Any]],
+) -> Dict[str, GroundTruthScenario]:
+    """Map scenario_id -> GroundTruthScenario from the raw JSON dicts."""
+    return {
+        sid: _scenario_from_gt_dict(d)
+        for sid, d in ground_truth.items()
+    }
+
+
+def _gt_context() -> Tuple[
+    Dict[str, GroundTruthScenario],
+    Dict[str, GroundTruthUnit],
+    Dict[str, str],
+    Dict[str, Tuple[str, ...]],
+]:
+    """Build the ground-truth context shared by L1 and baseline metrics.
+
+    Returns (scenarios, units, record_to_scenario, expected_ids_by_scenario),
+    where expected ids follow the same construction proven in
+    tests/unit/test_evaluation_accounting.py (_build_ground_truth_units +
+    _expected_match_ids), including the DUPLICATE settlement-only rule.
+    """
+    scenarios = _ground_truth_scenarios(_load_ground_truth())
+    units = {
+        u.scenario_id: u
+        for u in _build_ground_truth_units(list(scenarios.values()))
+    }
+    record_to_scenario: Dict[str, str] = {}
+    for unit in units.values():
+        for rid in unit.member_record_ids:
+            record_to_scenario[rid] = unit.scenario_id
+    expected: Dict[str, Tuple[str, ...]] = {
+        sid: tuple(sorted(_expected_match_ids(scenarios[sid], units[sid])))
+        for sid in scenarios
+    }
+    return scenarios, units, record_to_scenario, expected
+
+
+def _load_frozen_records() -> List[NormalizedRecord]:
+    """Load the frozen normalized dataset exactly as the pipeline does."""
+    return list(load_normalized_records(DATA_DIR))
+
+
+def _compute_layer1_metrics() -> Dict[str, Any]:
+    """Run the real deterministic Layer 1 matcher against the frozen dataset.
+
+    Returns scenario-level and record-level match counts/rates plus the
+    proportion of decisions that exactly match a ground-truth scenario
+    relationship. Fails closed if matched_records + residual_records does
+    not equal the total record count.
+    """
+    _, _, record_to_scenario, expected = _gt_context()
+    records = _load_frozen_records()
+    config = MatcherConfig(amount_tolerance_paise=100, date_window_days=2)
+    l1_result = reconcile(records, config)
+
+    decisions = list(l1_result.decisions)
+    matched_records: Set[str] = set()
+    matched_scenarios: Set[str] = set()
+    correct_decisions = 0
+    for d in decisions:
+        matched_records.update(d.member_record_ids)
+        sids = {record_to_scenario.get(rid) for rid in d.member_record_ids}
+        matched_scenarios.update(s for s in sids if s is not None)
+        if len(sids) == 1:
+            sid = next(iter(sids))
+            if (
+                sid is not None
+                and tuple(sorted(d.member_record_ids)) == expected[sid]
+            ):
+                correct_decisions += 1
+
+    matched_count = len(matched_records)
+    residual_count = len(l1_result.residual_record_ids)
+    if matched_count + residual_count != len(records):
+        raise CurrentReportError(
+            f"Layer 1 accounting invariant violated: matched={matched_count} + "
+            f"residual={residual_count} != total={len(records)}"
+        )
+
+    return {
+        "decisions": len(decisions),
+        "matched_scenarios": len(matched_scenarios),
+        "matched_records": matched_count,
+        "residual_records": residual_count,
+        "scenario_match_rate": len(matched_scenarios) / TOTAL_SCENARIOS,
+        "record_match_rate": matched_count / TOTAL_RECORDS,
+        "correct_decisions": correct_decisions,
+        "precision": (correct_decisions / len(decisions)) if decisions else None,
+        "note": (
+            "Scenario-level counts are distinct ground-truth scenarios owning "
+            "at least one matched record; record-level counts are unique records "
+            "covered by a Layer 1 decision. A decision is a matched pair "
+            "(exactly 2 member records)."
+        ),
+    }
+
+
+def _compute_naive_baseline() -> Dict[str, Any]:
+    """Run the real naive baseline matcher against the frozen dataset.
+
+    Uses reconciliation.baseline.naive_matcher (single-pass greedy
+    closest-amount/date pairing). Precision is reported at both the pair
+    level (correct pairs / total pairs) and the scenario level (correct
+    pairs / scenarios touched by any baseline pair), mirroring the semantics
+    of reconciliation.evaluation.primitives.compute_baseline_comparison.
+    """
+    _, _, record_to_scenario, expected = _gt_context()
+    records = _load_frozen_records()
+    config = MatcherConfig(amount_tolerance_paise=100, date_window_days=2)
+    result = naive_match(records, config)
+
+    pairs = result.matches
+    correct_pairs = 0
+    touched_scenarios: Set[str] = set()
+    matched_records: Set[str] = set()
+    for a, b in pairs:
+        matched_records.update((a, b))
+        sa, sb = record_to_scenario.get(a), record_to_scenario.get(b)
+        touched_scenarios.update(s for s in (sa, sb) if s is not None)
+        if (
+            sa is not None
+            and sa == sb
+            and tuple(sorted((a, b))) == expected[sa]
+        ):
+            correct_pairs += 1
+
+    return {
+        "match_pairs": len(pairs),
+        "correct_pairs": correct_pairs,
+        "matched_records": len(matched_records),
+        "unmatched_records": len(result.unmatched_record_ids),
+        "record_match_rate": len(matched_records) / TOTAL_RECORDS,
+        "matched_scenarios": len(touched_scenarios),
+        "scenario_match_rate": len(touched_scenarios) / TOTAL_SCENARIOS,
+        "pair_precision": (correct_pairs / len(pairs)) if pairs else None,
+        "scenario_precision": (
+            (correct_pairs / len(touched_scenarios)) if touched_scenarios else None
+        ),
+        "note": (
+            "Naive baseline: single-pass greedy closest-amount/date matcher "
+            "(reconciliation.baseline.naive_matcher). pair_precision = "
+            "correct pairs / total pairs; scenario_precision = correct pairs / "
+            "scenarios touched by any baseline pair (a scenario touched only "
+            "by an incorrect cross-scenario pair counts as matched but not "
+            "correct)."
+        ),
+    }
+
+
+def _compute_recall(
+    records: List[Dict[str, Any]],
+    ground_truth: Dict[str, Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Compute proposal-level Layer 2 recall from the audit artifact.
+
+    correlation_id in the artifact equals the scenario_id in ground_truth.json;
+    expected match record IDs are derived from record_specs via the same
+    construction proven in tests/unit/test_evaluation_accounting.py
+    (_build_ground_truth_units + _expected_match_ids).
+
+    Denominator: residual scenarios with has_real_match=True that Layer 2
+    actually attempted (PROPOSAL_VALID / NO_PROPOSAL / VALIDATION_FAILED).
+    Provider failures (API_ERROR / TIMEOUT) are excluded as not attempted.
+    Categories with documented ambiguous expected-match semantics
+    (RECALL_EXCLUDED_CATEGORIES, per the README's DUPLICATE-scoring open
+    question) are excluded from the denominator and disclosed, never dropped
+    silently: the including-excluded value is reported too.
+    """
+    scenarios = _ground_truth_scenarios(ground_truth)
+    units = {
+        u.scenario_id: u
+        for u in _build_ground_truth_units(list(scenarios.values()))
+    }
+    attempted = {"PROPOSAL_VALID", "NO_PROPOSAL", "VALIDATION_FAILED"}
+    provider_failures = {"API_ERROR", "TIMEOUT"}
+
+    true_positives = 0
+    denominator = 0
+    true_positives_all = 0
+    denominator_all = 0
+    excluded_correct = 0
+    excluded_total = 0
+    missed: List[Dict[str, Any]] = []
+
+    for r in records:
+        sid = r.get("correlation_id")
+        scenario = scenarios.get(sid)
+        unit = units.get(sid)
+        if scenario is None or unit is None:
+            continue
+        if not scenario.has_real_match:
+            continue
+        outcome = r.get("outcome")
+        if outcome in provider_failures:
+            continue
+        expected = tuple(sorted(_expected_match_ids(scenario, unit)))
+        proposed = tuple(
+            sorted((r.get("proposal") or {}).get("proposed_match_ids", []))
+        )
+        correct = proposed == expected
+
+        denominator_all += 1
+        if correct:
+            true_positives_all += 1
+
+        if scenario.category.value in RECALL_EXCLUDED_CATEGORIES:
+            excluded_total += 1
+            if correct:
+                excluded_correct += 1
+            continue
+
+        denominator += 1
+        if correct:
+            true_positives += 1
+        else:
+            missed.append(
+                {
+                    "scenario_id": sid,
+                    "category": scenario.category.value,
+                    "outcome": outcome,
+                    "expected_match_ids": list(expected),
+                    "proposed_match_ids": list(proposed),
+                }
+            )
+
+    value = (true_positives / denominator) if denominator else None
+    value_all = (
+        (true_positives_all / denominator_all) if denominator_all else None
+    )
+    status = "COMPUTED" if denominator else "NOT_APPLICABLE"
+
+    return {
+        "status": status,
+        "value": value,
+        "true_positives": true_positives,
+        "denominator": denominator,
+        "excluded_categories": sorted(RECALL_EXCLUDED_CATEGORIES),
+        "excluded_scenarios": excluded_total,
+        "excluded_correct": excluded_correct,
+        "denominator_including_excluded": denominator_all,
+        "true_positives_including_excluded": true_positives_all,
+        "recall_including_excluded": value_all,
+        "missed_scenarios": missed,
+        "note": (
+            "Proposal-level Layer 2 recall computed from the artifact: "
+            "correlation_id == ground_truth scenario_id, and expected match "
+            "record IDs are derived from record_specs via the synthetic_ref -> "
+            "record_id construction (_compute_record_id) already proven in "
+            "tests/unit/test_evaluation_accounting.py. Denominator = residual "
+            "scenarios with has_real_match=True that Layer 2 attempted "
+            "(PROPOSAL_VALID / NO_PROPOSAL / VALIDATION_FAILED); provider "
+            "failures (API_ERROR / TIMEOUT, i.e. not attempted) are excluded. "
+            "Excluded from the denominator: "
+            + ", ".join(sorted(RECALL_EXCLUDED_CATEGORIES))
+            + " — duplicate detection's scoring semantics are a documented "
+            "open question (README 'DUPLICATE scenario scoring'), so they are "
+            "disclosed rather than silently included. For transparency, the "
+            "value including the excluded category is reported in "
+            "recall_including_excluded."
+        ),
+    }
 
 
 def _category_from_correlation_id(cid: str) -> str:
@@ -380,37 +707,20 @@ def _summarize(
             "note": (
                 "Outcome-level precision at threshold. Provider failures (UNKNOWN) "
                 "are excluded from TP/FP and tracked in unknown_correctness. "
-                "Proposal-level precision is NOT COMPUTABLE (synthetic record IDs "
-                "in artifact cannot map to ground truth record_specs)."
+                "Proposal-level (match-ID-level) precision is NOT COMPUTABLE in "
+                "this report: only proposal-level recall is computed (see "
+                "'recall'); proposal-level precision is not among the metrics "
+                "computed here."
             ),
         }
 
-    # ---- Recall: NOT COMPUTABLE
+    # ---- Recall: computed from the artifact
     #
-    # Proposal-level recall requires mapping proposed_match_ids back to
-    # ground_truth record_specs via synthetic_ref. The artifact contains
-    # normalized record IDs (e.g., "SETTLEMENT-xxx") but ground_truth uses
-    # synthetic_refs (e.g., "REC-SET-001"). The normalization mapping
-    # (synthetic_ref -> actual record ID) is not present in the artifact.
-    #
-    # Minimal provenance change needed for future evaluations:
-    #   Add "synthetic_ref" field to each record in the Layer 2 audit artifact,
-    #   or include a normalization_map {synthetic_ref: actual_record_id} in
-    #   the artifact header.
-    recall = {
-        "status": "NOT_COMPUTABLE",
-        "value": None,
-        "true_positives": 0,
-        "denominator": 0,
-        "note": (
-            "Proposal-level recall is NOT COMPUTABLE because synthetic record IDs "
-            "in the artifact (e.g., 'SETTLEMENT-xxx') cannot be mapped back to "
-            "ground_truth record_specs (which use synthetic_refs like "
-            "'REC-SET-001'). The normalization mapping is not present in the "
-            "artifact. Minimal fix: include 'synthetic_ref' in each audit record "
-            "or a 'normalization_map' in the artifact header."
-        ),
-    }
+    # Proposal-level recall IS computable: correlation_id in the artifact
+    # equals the scenario_id in ground_truth.json, and expected match record
+    # IDs can be derived from record_specs via _compute_record_id (the same
+    # construction proven in tests/unit/test_evaluation_accounting.py).
+    recall = _compute_recall(records, ground_truth)
 
     # ---- OUTCOME-LEVEL metrics (determinable from this artifact)
     matchable_outcome_correct = 0
@@ -660,9 +970,14 @@ def _build_report(
     summary: Dict[str, Any],
     status: str,
 ) -> Dict[str, Any]:
-    total_records = 245  # canonical expected
-    total_scenarios = 120  # canonical expected
-    residual_count = 77  # canonical expected
+    total_records = TOTAL_RECORDS  # canonical expected
+    total_scenarios = TOTAL_SCENARIOS  # canonical expected
+    residual_count = TOTAL_RESIDUAL_SCENARIOS  # canonical expected
+
+    # Real, freshly computed Layer 1 and naive-baseline metrics over the
+    # frozen dataset — never copy-pasted or derived from the artifact.
+    l1 = _compute_layer1_metrics()
+    naive = _compute_naive_baseline()
 
     return {
         "_lifecycle": "current",
@@ -689,10 +1004,16 @@ def _build_report(
         "layer2_missing": summary["layer2_missing"],
         "missing_scenario_ids": summary["missing_scenario_ids"],
         "layer1": {
-            "matched_records": 43,  # canonical L1 deterministic match count
-            "residual_records": 159,
-            "residual_scenarios": 77,
-            "match_rate_records": 43 / 245,
+            "decisions": l1["decisions"],
+            "matched_scenarios": l1["matched_scenarios"],
+            "matched_records": l1["matched_records"],
+            "residual_records": l1["residual_records"],
+            "residual_scenarios": residual_count,
+            "scenario_match_rate": l1["scenario_match_rate"],
+            "record_match_rate": l1["record_match_rate"],
+            "correct_decisions": l1["correct_decisions"],
+            "precision": l1["precision"],
+            "note": l1["note"],
         },
         "layer2": {
             "outcomes_by_type": summary["outcomes_by_type"],
@@ -726,11 +1047,51 @@ def _build_report(
             "layer2_evaluated_in_artifact": len(records),
         },
         "baseline_comparison": {
-            "layer1_only_match_rate": 43 / 245,
-            "layer1_deterministic_precision": 1.0,
-            "note": "Baseline comparison uses the Layer 1 deterministic matcher "
-                    "as the no-AI reference. Concord's hybrid (L1 + L2 + L3) "
-                    "is evaluated against it.",
+            "naive_matcher": {
+                "match_pairs": naive["match_pairs"],
+                "correct_pairs": naive["correct_pairs"],
+                "matched_records": naive["matched_records"],
+                "unmatched_records": naive["unmatched_records"],
+                "record_match_rate": naive["record_match_rate"],
+                "matched_scenarios": naive["matched_scenarios"],
+                "scenario_match_rate": naive["scenario_match_rate"],
+                "pair_precision": naive["pair_precision"],
+                "scenario_precision": naive["scenario_precision"],
+            },
+            "layer1": {
+                "decisions": l1["decisions"],
+                "matched_records": l1["matched_records"],
+                "matched_scenarios": l1["matched_scenarios"],
+                "record_match_rate": l1["record_match_rate"],
+                "scenario_match_rate": l1["scenario_match_rate"],
+                "correct_decisions": l1["correct_decisions"],
+                "precision": l1["precision"],
+            },
+            "match_rate_delta": (
+                l1["scenario_match_rate"] - naive["scenario_match_rate"]
+            ),
+            "precision_delta": (
+                (l1["precision"] - naive["scenario_precision"])
+                if (
+                    l1["precision"] is not None
+                    and naive["scenario_precision"] is not None
+                )
+                else None
+            ),
+            "note": (
+                "Baseline = reconciliation.baseline.naive_matcher (single-pass "
+                "greedy closest-amount/date pairing), run against the same "
+                "frozen dataset. Layer 1 and the naive matcher both cover "
+                "86/245 records, but Layer 1 emits only unambiguous pairs: all "
+                "43 decisions match a ground-truth scenario relationship (100% "
+                "precision), while the naive matcher's 43 pairs include 7 "
+                "incorrect ones (83.7% pair precision). At the scenario level, "
+                "Layer 1 matches 43/120 scenarios (35.8%) with 100% precision "
+                "vs. the naive matcher's 48/120 touched scenarios (40.0%) at "
+                "75% precision — the extra coverage is entirely false "
+                "cross-scenario pairs. This is the precision-over-coverage "
+                "tradeoff Concord makes."
+            ),
         },
         "completeness": summary["completeness"],
         "limitations": (
@@ -750,8 +1111,10 @@ def _build_report(
                 f"FULL EVALUATION: {summary['layer2_attempted']}/{residual_count} "
                 "residual scenarios evaluated.",
                 "Provider failures (UNKNOWN) are explicitly tracked and excluded "
-                "from correctness denominators. Proposal-level precision/recall "
-                "are NOT COMPUTABLE without normalization mapping.",
+                "from correctness denominators. Proposal-level recall is "
+                "computed over attempted scenarios via the correlation_id -> "
+                "scenario_id mapping; proposal-level precision is NOT "
+                "COMPUTABLE in this report.",
             ]
         ),
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -807,10 +1170,20 @@ def _render_markdown(report: Dict[str, Any]) -> str:
         f"- Residual scenarios: {report['residual_scenarios']}",
         "",
         "## Layer 1 (deterministic)",
-        f"- Matched records: {report['layer1']['matched_records']} / "
-        f"{report['total_records']} ({report['layer1']['match_rate_records']:.1%})",
+        "- **Scenario-level:** matched "
+        f"{report['layer1']['matched_scenarios']} / {report['total_scenarios']} "
+        "scenarios "
+        f"({report['layer1']['scenario_match_rate']:.1%})",
+        "- **Record-level:** matched "
+        f"{report['layer1']['matched_records']} / {report['total_records']} "
+        "records "
+        f"({report['layer1']['record_match_rate']:.1%})",
         f"- Residual records: {report['layer1']['residual_records']}",
         f"- Residual scenarios: {report['layer1']['residual_scenarios']}",
+        "- Precision: "
+        f"{_fmt(report['layer1']['precision'])} "
+        f"({report['layer1']['correct_decisions']} / "
+        f"{report['layer1']['decisions']} correct decisions)",
         "",
         "## Layer 2 (Groq) execution",
         f"- Attempted: {report['layer2_attempted']} / "
@@ -840,9 +1213,30 @@ def _render_markdown(report: Dict[str, Any]) -> str:
             f"{_fmt(m['known_outcome_rate'])} |"
         )
     lines.append("")
-    lines.append(
-        f"**Recall:** {recall.get('status', 'UNKNOWN')} — {recall.get('note', '')}"
-    )
+    if recall.get("value") is not None:
+        lines.append(
+            f"**Recall (Layer 2 proposal-level, attempted scenarios):** "
+            f"{recall['true_positives']} / {recall['denominator']} "
+            f"({recall['value']:.1%})"
+        )
+        if recall.get("excluded_categories"):
+            lines.append(
+                "- Excluded from the recall denominator (documented ambiguous "
+                "expected-match semantics): "
+                + ", ".join(recall["excluded_categories"])
+                + f" ({recall['excluded_scenarios']} scenarios, "
+                f"{recall['excluded_correct']} correctly proposed; including "
+                "them the value would be "
+                f"{recall['true_positives_including_excluded']} / "
+                f"{recall['denominator_including_excluded']} "
+                f"({_fmt(recall['recall_including_excluded'])}))"
+            )
+    else:
+        lines.append(
+            f"**Recall:** {recall.get('status', 'UNKNOWN')} — "
+            f"{recall.get('note', '')}"
+        )
+    lines.append(f"- Note: {recall.get('note', '')}")
     lines.append("")
     lines.append("## Outcome-level metrics (computable from this artifact)")
     om = report.get("outcome_level_metrics", {})
@@ -912,13 +1306,40 @@ def _render_markdown(report: Dict[str, Any]) -> str:
     )
     lines.append("")
     lines.append("## Baseline comparison")
+    bc = report["baseline_comparison"]
+    nb = bc["naive_matcher"]
+    l1b = bc["layer1"]
     lines.append(
-        f"- Layer 1-only match rate: {report['baseline_comparison']['layer1_only_match_rate']:.1%}"
+        "- **Naive baseline** (single-pass greedy closest-amount/date "
+        "matcher, run on the same frozen dataset): "
+        f"{nb['matched_records']} / {report['total_records']} records "
+        f"matched ({nb['record_match_rate']:.1%}); "
+        f"{nb['match_pairs']} pairs, of which {nb['correct_pairs']} are "
+        f"correct ({nb['pair_precision']:.1%} pair precision); "
+        f"{nb['matched_scenarios']} / {report['total_scenarios']} scenarios "
+        f"touched ({nb['scenario_match_rate']:.1%}) at "
+        f"{nb['scenario_precision']:.1%} scenario precision; "
+        f"{nb['unmatched_records']} residual records."
     )
     lines.append(
-        f"- Layer 1 deterministic precision: "
-        f"{report['baseline_comparison']['layer1_deterministic_precision']:.1%}"
+        "- **Layer 1 (deterministic):** "
+        f"{l1b['matched_records']} / {report['total_records']} records "
+        f"matched ({l1b['record_match_rate']:.1%}); "
+        f"{l1b['matched_scenarios']} / {report['total_scenarios']} scenarios "
+        f"matched ({l1b['scenario_match_rate']:.1%}) at "
+        f"{_fmt(l1b['precision'])} precision "
+        f"({l1b['correct_decisions']} / {l1b['decisions']} correct decisions)."
     )
+    lines.append(
+        f"- Scenario-level match-rate delta (Layer 1 − baseline): "
+        f"{_fmt(bc['match_rate_delta'])}"
+    )
+    lines.append(
+        f"- Scenario-level precision delta (Layer 1 − baseline): "
+        f"{_fmt(bc['precision_delta'])}"
+    )
+    lines.append("")
+    lines.append(f"*{bc['note']}*")
     lines.append("")
     lines.append("## Completeness")
     lines.append(f"- {report['completeness']:.1%} of residual scenarios evaluated.")

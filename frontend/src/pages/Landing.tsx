@@ -87,7 +87,7 @@ function HeroSection() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse-soft" />
-              Built for the Razorpay AI Builder Buildathon
+              Built for the Razorpay AI Buildathon
             </div>
 
             <h1 className="text-display font-semibold text-cream-50 tracking-tight">
@@ -453,7 +453,7 @@ function FinalCTA() {
             Open Reconciliation Console <ArrowRight className="w-5 h-5" />
           </Link>
           <p className="text-xs text-cream-500/50 mt-4">
-            Synthetic evaluation data available · Built for the Razorpay AI Builder Buildathon
+            Synthetic evaluation data available · Built for the Razorpay AI Buildathon
           </p>
         </motion.div>
       </div>

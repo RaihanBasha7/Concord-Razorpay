@@ -15,7 +15,7 @@ import { Topbar } from '@/components/navigation/Topbar';
 import { StatusPill, RoutingReasonBadge } from '@/components/ui/StatusPill';
 import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
 import { PageTransition, StaggerGroup, StaggerItem, Skeleton } from '@/components/ui/Transitions';
-import { getRecordDetail } from '@/api/concord';
+import { getBatchStatus, getRecordDetail } from '@/api/concord';
 import type { RecordAuditDetail } from '@/lib/types';
 
 const LAST_BATCH_KEY = 'concord:lastBatchId';
@@ -24,6 +24,7 @@ export function RecordDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [record, setRecord] = useState<RecordAuditDetail | null>(null);
+  const [layer2Mode, setLayer2Mode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +38,15 @@ export function RecordDetail() {
         return;
       }
       try {
-        const res = await getRecordDetail(batchId, id);
+        const [res, status] = await Promise.all([
+          getRecordDetail(batchId, id),
+          // layer2_mode is a batch-level field (not on the record); fetch it
+          // tolerantly — a status failure must not break the trace page, and
+          // the fallback text never claims AI reasoning ran.
+          getBatchStatus(batchId).catch(() => null),
+        ]);
         setRecord(res.record);
+        setLayer2Mode(status?.layer2_mode ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load record');
       } finally {
@@ -196,7 +204,7 @@ export function RecordDetail() {
                         <XCircle className="w-4 h-4 text-signal-exception" />
                         <span className="text-sm text-cream-100">No deterministic match found.</span>
                       </div>
-                      <p className="text-xs text-cream-500/70">Routed to Layer 2 for AI reasoning.</p>
+                      <p className="text-xs text-cream-500/70">{layer2TraceText(layer2Mode)}</p>
                     </div>
                   )}
                 </TraceStep>
@@ -286,6 +294,16 @@ export function RecordDetail() {
       </PageTransition>
     </>
   );
+}
+
+function layer2TraceText(layer2Mode: string | null): string {
+  if (layer2Mode === 'frozen_artifact') {
+    return 'AI proposal replayed from verified evaluation artifact.';
+  }
+  // "not_executed", null (batch not completed), or any other value — no
+  // genuinely live Layer 2 mode is reachable in this build, so never claim
+  // AI reasoning ran.
+  return 'AI reasoning not executed for this batch.';
 }
 
 function TraceStep({

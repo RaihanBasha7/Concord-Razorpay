@@ -113,7 +113,7 @@ Omitting `bucket` returns all records.
       "date": "2024-01-15",
       "narration": "string | null",
       "bucket": "DETERMINISTIC_MATCH | AI_AUTO_ACCEPTED | HUMAN_REVIEW | EXCEPTION",
-      "reason": "LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE",
+      "reason": "LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | LOW_EVIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE",
       "confidence": 1.0 | 0.85 | null,
       "source_decision_id": "string | null",
       "source_outcome": "PROPOSAL_VALID | NO_PROPOSAL | VALIDATION_FAILED | API_ERROR | TIMEOUT | null"
@@ -203,7 +203,7 @@ Omitting `bucket` returns all records.
     } | null,
     "routing": {
       "bucket": "DETERMINISTIC_MATCH | AI_AUTO_ACCEPTED | HUMAN_REVIEW | EXCEPTION",
-      "reason": "LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE",
+      "reason": "LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | LOW_EVIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE",
       "confidence": 1.0 | null,
       "source_decision_id": "string | null",
       "source_outcome": "PROPOSAL_VALID | NO_PROPOSAL | VALIDATION_FAILED | API_ERROR | TIMEOUT | null"
@@ -228,7 +228,7 @@ DETERMINISTIC_MATCH | AI_AUTO_ACCEPTED | HUMAN_REVIEW | EXCEPTION
 
 ### RoutingReason (maps to `reason` field)
 ```
-LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE
+LAYER1_DETERMINISTIC | AI_CONFIDENT | AI_NEEDS_REVIEW | LOW_CONFIDENCE | LOW_EVIDENCE | AI_RESPONSE_INVALID | NO_CANDIDATE
 ```
 
 ### ProposalOutcomeType (maps to `source_outcome` field)

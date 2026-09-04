@@ -16,6 +16,7 @@ dist/
 # archive files are gitignored (they regenerate with each run).
 data/layer2_full_audit.*.jsonl
 data/layer2_full_audit.jsonl.tmp
+data/layer2_clean_audit.*.jsonl
 .egg/
 .coverage
 htmlcov/
@@ -38,3 +39,5 @@ dmypy.json
 data/layer2_evaluation_report.json
 
 data/layer2_full_run.log
+
+/Concord_submission.zip
