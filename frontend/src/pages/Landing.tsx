@@ -119,8 +119,8 @@ function HeroSection() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="grid grid-cols-3 gap-3 pt-4"
           >
-            <MicroStat label="Layer 1 Coverage" value="60%" sublabel="DEMO DATA" />
-            <MicroStat label="Residuals to AI" value="40%" sublabel="DEMO DATA" />
+            <MicroStat label="Layer 1 Coverage" value="35%" sublabel="FROZEN DEMO DATA" />
+            <MicroStat label="Residuals to AI" value="65%" sublabel="FROZEN DEMO DATA" />
             <MicroStat label="Guardrails Active" value="3" sublabel="L3 routing rules" />
           </motion.div>
         </div>

@@ -125,9 +125,26 @@ def create_app(
     )
     app.include_router(router, prefix="/batches", tags=["batches"])
 
-    # Serve the frontend from / — mount LAST so API routes take priority.
-    frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
-    if frontend_dir.is_dir():
-        app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+    # Serve the built frontend from / — mount LAST so API routes take priority.
+    #
+    # Only the production build output (frontend/dist, produced by
+    # `npm run build` in frontend/) is mountable: the source frontend/ tree
+    # is Vite dev input and cannot run in a browser.  When no build exists
+    # (e.g. a fresh clone running the API only), nothing is mounted and the
+    # API serves fine on its own.
+    frontend_root = Path(__file__).resolve().parent.parent.parent / "frontend"
+    frontend_dist = frontend_root / "dist"
+    static_root = frontend_dist if frontend_dist.is_dir() else None
+    if static_root is None and (frontend_root / "index.html").is_file():
+        logger.warning(
+            "frontend/dist not found — serving API only. "
+            "Run `npm run build` inside frontend/ to serve the UI from this process."
+        )
+    if static_root is not None:
+        app.mount(
+            "/",
+            StaticFiles(directory=str(static_root), html=True),
+            name="frontend",
+        )
 
     return app

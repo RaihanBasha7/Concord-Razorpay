@@ -210,7 +210,7 @@ uvicorn reconciliation.api.app:create_app --factory --host 127.0.0.1 --port 8000
 
 The `--factory` flag is required because `reconciliation/api/app.py` exposes `create_app()` (an application factory), not a module-level `app` object. Run the command from the repository root so that the default `data_dir` (the parent of the default `data/concord.db`, i.e. `data/`) resolves to the folder containing the frozen dataset manifest (`data/dataset_manifest.json`) and the canonical Layer 2 audit artifact (`data/layer2_clean_audit.jsonl`). Starting from any other directory would point `data_dir` at the wrong folder, and frozen-dataset fingerprint verification (and artifact replay) would not engage.
 
-The built frontend (from `npm run build` in `frontend/`) is served from `/` by the same process. A quick end-to-end smoke test:
+The built frontend (from `npm run build` inside `frontend/`) is served from `/` by the same process when `frontend/dist` exists; without a build the backend serves the API only (the Vite source tree is not servable). A quick end-to-end smoke test:
 
 ```bash
 curl http://127.0.0.1:8000/health
@@ -273,6 +273,35 @@ The `BatchStore` interface is intentionally narrow — these changes are enginee
 | Multi-instance deployment | Not supported |
 | Database backups | Manual |
 | Schema migrations | Not supported |
+
+### Deployment: Vercel (frontend) + Render (backend)
+
+The intended production topology is a Vite/React frontend on Vercel talking to the FastAPI backend on Render.
+
+**Render (backend).**
+
+- **Root directory:** repository root.
+- **Build command:** `pip install -e ".[api]"`
+- **Start command:** `uvicorn reconciliation.api.app:create_app --factory --host 0.0.0.0 --port $PORT`
+  - The `--factory` flag is required: `reconciliation/api/app.py` exposes `create_app()`, not a module-level `app`.
+  - Start from the repository root so the default `data/` directory resolves to the frozen dataset manifest and canonical Layer 2 artifact that the API ships with (`data/dataset_manifest.json`, `data/layer2_clean_audit.jsonl`, the three CSVs, `residuals.csv`, `ground_truth.json` are all tracked in git).
+  - The SQLite database is created at `data/concord.db` at runtime. Render's filesystem is writable, so uploads persist for the life of the instance (ephemeral across restarts on free plans — consistent with the SQLite limitations documented above and fine for the demo).
+  - No frontend build is required on Render; when `frontend/dist` is absent the backend serves the API only.
+- **Environment variables:**
+  - `GROQ_API_KEY` — required only for running the Layer 2 Groq inference scripts locally. The API itself never calls the LLM (it replays frozen artifacts for the evaluation dataset and reports `layer2_mode: not_executed` for arbitrary uploads), so the deployed API works without it.
+  - `CONCORD_CORS_ORIGINS` — comma-separated list of origins allowed to call the API, e.g. `https://concord-demo.vercel.app`. When unset the code defaults to `*` (permissive, fine for the demo); set it to the exact Vercel origin for a stricter deployment.
+- **Health check:** `GET /health` returns 200 when the process is alive. Interactive docs at `GET /docs`.
+
+**Vercel (frontend).**
+
+- **Root directory:** `frontend`
+- **Framework preset:** Vite
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+- **Environment variables:**
+  - `VITE_API_BASE_URL` — must be set to the Render backend URL, e.g. `https://concord-api.onrender.com`. In production the app reads only this variable; the `http://127.0.0.1:8000` fallback in `frontend/src/api/concord.ts` is for local development only. Never prefix a secret with `VITE_`.
+- **SPA routing:** `frontend/vercel.json` rewrites unmatched paths to `/index.html` so deep links such as `/app/queue` and `/app/records/{id}` work on refresh.
+- The demo-data button on the Upload page fetches the frozen evaluation dataset from `/fixtures/*.csv`, so one click exercises the full path: upload → fingerprint match → Layer 2 artifact replay → Layer 3 guardrails.
 
 ## Data Retention
 

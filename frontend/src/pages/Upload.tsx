@@ -164,7 +164,7 @@ export function Upload() {
                 <div>
                   <div className="text-xs text-cream-100 font-medium">No CSVs handy?</div>
                   <div className="text-[10px] text-cream-500/60 mt-0.5">
-                    Load 5-record demo fixtures to try the pipeline.
+                    Load the full 245-record evaluation dataset — Layer 2 results replay from the frozen artifact.
                   </div>
                 </div>
                 <button

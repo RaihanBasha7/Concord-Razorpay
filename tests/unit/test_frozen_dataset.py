@@ -1426,3 +1426,101 @@ class TestRealManifestArtifactWiring:
         assert "canonical_layer2_artifact" in real_raw, (
             "Real manifest was accidentally modified!"
         )
+
+    def test_real_replay_never_fabricates_api_errors(self) -> None:  # noqa: E501
+        """Replay must never invent provider failures or alter routing.
+
+        Regression: the loader previously "claimed" each audit record once
+        and fabricated an API_ERROR outcome for every additional residual
+        record of an already-claimed scenario.  On the real dataset that
+        inflated the eval report to 101 API_ERROR outcomes even though only
+        15 scenarios have genuine provider failures.
+
+        Pins:
+        1. One outcome per residual record (contract preserved).
+        2. API_ERROR outcomes only for records whose OWN scenario genuinely
+           failed (computed independently from the raw artifact/residuals),
+           never fabricated for co-members of successful scenarios.
+        3. Record-level routing composition is unchanged (the documented
+           86 / 24 / 48 / 87 from a live frozen upload) — the truthful
+           substitution must not re-claim candidate records.
+        """
+        import csv as csv_module
+        import json as json_module
+        from collections import Counter
+
+        from reconciliation.frozen_dataset import load_frozen_l2_outcomes
+        from reconciliation.layer3 import route as layer3_route
+        from reconciliation.loader import (
+            load_normalized_records,
+            load_residuals,
+        )
+        from reconciliation.matcher import reconcile
+        from reconciliation.matcher_config import MatcherConfig
+
+        data_dir = self.REAL_DATA_DIR
+
+        # Independently derive each scenario's artifact outcome from the raw
+        # artifact JSONL (correlation_id == scenario_id) and residuals.csv.
+        raw_manifest = json_module.loads(
+            (data_dir / "dataset_manifest.json").read_text(encoding="utf-8")
+        )
+        artifact_name = raw_manifest["canonical_layer2_artifact"]["filename"]
+        outcome_by_correlation = {}
+        with (data_dir / artifact_name).open(
+            "r", encoding="utf-8"
+        ) as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                raw = json_module.loads(line)
+                outcome_by_correlation[raw["correlation_id"]] = raw["outcome"]
+
+        scenario_by_member = {}
+        with (data_dir / "residuals.csv").open(
+            "r", encoding="utf-8", newline=""
+        ) as handle:
+            for row in csv_module.DictReader(handle):
+                for mid in json_module.loads(row["member_record_ids"]):
+                    scenario_by_member[mid] = row["scenario_id"]
+
+        records = load_normalized_records(data_dir)
+        l1 = reconcile(
+            records,
+            MatcherConfig(amount_tolerance_paise=100, date_window_days=2),
+        )
+        residual_ids = tuple(l1.residual_record_ids)
+
+        outcomes = load_frozen_l2_outcomes(data_dir, records, residual_ids)
+
+        # 1. One outcome per residual record.
+        assert len(outcomes) == len(residual_ids)
+
+        # 2. API_ERROR is bounded by the genuine failure count: a record
+        #    whose own scenario succeeded must never carry an API_ERROR, and
+        #    a record whose own scenario failed may only lose its API_ERROR
+        #    when an overlapping earlier scenario's outcome claimed it first
+        #    (Layer 3's documented first-wins semantics).  The old code
+        #    fabricated 101 API_ERROR outcomes here; genuine members of
+        #    failing scenarios number 26, so any count near 100 is a
+        #    fabrication regression.
+        tallies = Counter(o.outcome.value for o in outcomes)
+        expected_api_errors = sum(
+            1
+            for rid in residual_ids
+            if outcome_by_correlation[scenario_by_member[rid]] == "API_ERROR"
+        )
+        assert 0 < tallies["API_ERROR"] <= expected_api_errors, tallies
+
+        # 3. Routing composition unchanged (README-documented live numbers).
+        routing = layer3_route(l1.decisions, outcomes, records)
+        composition = Counter(r.bucket.value for r in routing)
+        assert composition == Counter(
+            {
+                "DETERMINISTIC_MATCH": 86,
+                "AI_AUTO_ACCEPTED": 24,
+                "HUMAN_REVIEW": 48,
+                "EXCEPTION": 87,
+            }
+        ), composition

@@ -363,13 +363,30 @@ def load_frozen_l2_outcomes(
         for mid in scenario.member_record_ids:
             record_to_residual[mid] = scenario
 
-    # Build the inverted index for audit record lookup.
+    # Canonical artifact records carry the ground-truth scenario id in
+    # ``correlation_id`` (proven in the README's AI-recall methodology and
+    # exercised against the real artifact by the test suite), so the record's
+    # OWN scenario outcome can always be resolved when needed.
+    audit_by_correlation: Dict[str, List[_AuditRecord]] = defaultdict(list)
+    for audit in audit_records:
+        audit_by_correlation[audit.correlation_id].append(audit)
     record_index = _build_record_to_audit_index(audit_records)
 
-    # Track which audit records have been claimed (first-match wins).
+    # Routing-relevant outcomes keep the deterministic claim order: when a
+    # residual scenario's best subset match has not yet been claimed, its
+    # audit outcome is emitted once with the FULL presented record set and
+    # claims those records (identical to Layer 3's documented first-wins
+    # semantics, which produce the record-level routing composition in the
+    # README).  Every LATER residual record of an already-claimed scenario
+    # must still carry a truthful outcome object (one per residual record),
+    # but presenting the full candidate set again would re-claim records
+    # and change routing, so those occurrences receive their own scenario's
+    # real outcome with the presented set trimmed to the scenario's own
+    # members (which were already claimed).  No API_ERROR is ever invented
+    # for a scenario whose audit record exists — provider failures in the
+    # tallies are always genuine artifact outcomes.
     claimed_audits: Set[int] = set()
 
-    # For each residual record, find its audit record.
     outcomes: List[ProposalOutcome] = []
     matched_count = 0
     unmatched_count = 0
@@ -399,8 +416,29 @@ def load_frozen_l2_outcomes(
             claimed_audits.add(best_idx)
             outcomes.append(_audit_to_proposal_outcome(audit_records[best_idx]))
             matched_count += 1
+            continue
+
+        # This record's scenario audit was already claimed (either by this
+        # scenario's first member, or by an earlier overlapping scenario's
+        # outcome).  Emit the record's OWN scenario outcome — never an
+        # invented provider failure — but restrict the presented set to the
+        # scenario members, which are already claimed, so routing is
+        # unaffected.
+        own_audits = audit_by_correlation.get(scenario.scenario_id)
+        if own_audits:
+            own_outcome = _audit_to_proposal_outcome(own_audits[0])
+            outcomes.append(
+                ProposalOutcome(
+                    outcome=own_outcome.outcome,
+                    proposal=own_outcome.proposal,
+                    presented_record_ids=member_ids,
+                    reason=own_outcome.reason,
+                    invalid_ids=own_outcome.invalid_ids,
+                )
+            )
+            matched_count += 1
         else:
-            # No unclaimed audit record found → fail closed.
+            # No audit record at all for this scenario → fail closed.
             outcomes.append(
                 ProposalOutcome(
                     outcome=ProposalOutcomeType.API_ERROR,
@@ -419,3 +457,47 @@ def load_frozen_l2_outcomes(
     )
 
     return outcomes
+
+
+def frozen_artifact_summary(data_dir: Path | str) -> Dict[str, Any]:
+    """Scenario-level provenance summary of the pinned canonical Layer 2 artifact.
+
+    Counts come from the canonical artifact itself (one audit record per
+    residual scenario), so ``provider_failures`` here are GENUINE provider
+    failures (API_ERROR / TIMEOUT) — never per-record replays.  This is the
+    number the README reports (15 of 77) and the number the evaluation
+    report must expose.
+
+    Returns an error-keyed dict when the artifact cannot be loaded
+    (fail-closed), mirroring ``load_frozen_l2_outcomes``.
+    """
+    data_dir = Path(data_dir)
+    try:
+        audit_records = _load_canonical_audit_records(data_dir)
+    except (ValueError, FileNotFoundError, IOError) as exc:
+        return {"error": f"Canonical Layer 2 artifact unavailable: {exc}"}
+
+    outcome_counts: Dict[str, int] = {}
+    for audit in audit_records:
+        outcome_counts[audit.outcome] = outcome_counts.get(audit.outcome, 0) + 1
+
+    return {
+        "residual_scenarios": len(audit_records),
+        "scenario_outcomes": outcome_counts,
+        "successful_proposals": outcome_counts.get(
+            ProposalOutcomeType.PROPOSAL_VALID.value, 0
+        ),
+        "no_proposal": outcome_counts.get(
+            ProposalOutcomeType.NO_PROPOSAL.value, 0
+        ),
+        "provider_failures": (
+            outcome_counts.get(ProposalOutcomeType.API_ERROR.value, 0)
+            + outcome_counts.get(ProposalOutcomeType.TIMEOUT.value, 0)
+        ),
+        "granularity_note": (
+            "Scenario-level tallies from the pinned canonical artifact (one "
+            "audit record per residual scenario). Record-level routing "
+            "composition for this batch is reported under "
+            "layer3_routing_composition."
+        ),
+    }

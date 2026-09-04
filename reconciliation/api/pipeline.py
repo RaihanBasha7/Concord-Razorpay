@@ -22,6 +22,7 @@ from pathlib import Path
 
 from reconciliation.domain.models import NormalizedRecord, SourceType
 from reconciliation.frozen_dataset import (
+    frozen_artifact_summary,
     load_frozen_l2_outcomes,
     verify_upload_against_manifest,
 )
@@ -515,27 +516,11 @@ def run_batch_pipeline(
             "new LLM request during upload; the stored model outputs are "
             "replayed and routed through Layer 3 deterministic guardrails."
         )
-        # Record artifact provenance for the eval report.
-        eval_report["artifact_provenance"] = {
-            "residual_scenarios": len(
-                [rid for rid in l1_result.residual_record_ids]
-            ) if hasattr(l1_result, 'residual_record_ids') else None,
-            "successful_proposals": sum(
-                1 for o in l2_outcomes
-                if o.outcome == ProposalOutcomeType.PROPOSAL_VALID
-            ),
-            "provider_failures": sum(
-                1 for o in l2_outcomes
-                if o.outcome in (
-                    ProposalOutcomeType.API_ERROR,
-                    ProposalOutcomeType.TIMEOUT,
-                )
-            ),
-            "no_proposal": sum(
-                1 for o in l2_outcomes
-                if o.outcome == ProposalOutcomeType.NO_PROPOSAL
-            ),
-        }
+        # Record artifact provenance for the eval report.  This is computed
+        # from the pinned canonical artifact itself (scenario-level, one audit
+        # record per residual scenario) so provider-failure counts reflect
+        # genuine Groq failures — never the per-record replay tallies above.
+        eval_report["artifact_provenance"] = frozen_artifact_summary(data_dir)
 
     # 7. Build structured audit records.
     audit_records = _build_audit_records(
