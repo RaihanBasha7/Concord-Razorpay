@@ -30,6 +30,18 @@ Key results from the current canonical evaluation:
 
 See the detailed evaluation section below for methodology, metric definitions, known limitations, and incident analysis.
 
+## How It Works
+
+1. Upload settlement, bank, and ledger CSV files through the web application.
+2. Concord normalizes records from the three sources into a canonical format.
+3. Layer 1 attempts deterministic reconciliation using exact identifiers and amount/date rules.
+4. Ambiguous or unresolved records remain explicit residuals rather than being force-matched.
+5. For the frozen evaluation dataset, Layer 2 AI proposals are replayed through deterministic Layer 3 guardrails.
+6. Records are routed into deterministic matches, AI auto-accepted matches, human review, or exceptions.
+7. Users can inspect reconciliation decisions and their supporting context.
+
+> **Important:** Arbitrary uploaded batches currently run the deterministic Layer 1 pipeline only. Live Layer 2 AI inference is intentionally not enabled for arbitrary uploads; see [Layer 2 / API gap](#layer-2--api-gap). 
+
 ## Current MVP Capabilities
 
 **Implemented (Day 1–2):**
@@ -79,18 +91,6 @@ See the detailed evaluation section below for methodology, metric definitions, k
 - Append-only JSONL audit trail — per-scenario audit records with neutral internal correlation IDs replacing category-encoded scenario IDs; persistence failures reported without mutating outcomes
 - End-to-end runner with configurable sample limiting to control API usage; orchestrator injected for mockable testing with no API-key dependency
 - Diagnostic scripts (`scripts/diagnose_day4.py`, `scripts/diagnose_day4_all.py`) for local inspection of reconstruction and retrieval without LLM calls
-
-## How It Works
-
-1. Upload settlement, bank, and ledger CSV files.
-2. Concord normalizes records into a canonical format.
-3. Layer 1 attempts deterministic reconciliation using:
-   - Exact identifier matching
-   - Amount and configurable date-window matching
-4. Ambiguous or unresolved records remain explicit residuals rather than being force-matched.
-5. For the frozen evaluation dataset, pre-computed Layer 2 AI proposals are replayed through deterministic Layer 3 guardrails.
-6. Records are routed into deterministic matches, AI auto-accepted matches, human review, or exceptions.
-7. Users can inspect individual reconciliation decisions and their supporting context.
 
 ## Architecture
 
