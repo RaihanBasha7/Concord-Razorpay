@@ -6,6 +6,30 @@ Concord is a precision-first settlement reconciliation engine that matches finan
 
 Merchants and finance teams reconcile payments across multiple systems — settlement reports from payment gateways, bank credit statements, and internal ledger entries. These sources rarely agree perfectly on order IDs, amounts, or dates. Manual reconciliation is slow and error-prone; naive automated matching produces false positives that erode trust.
 
+## Who Is This For?
+
+Concord is designed for merchants, finance operations teams, and payment businesses that need to reconcile records across payment settlement reports, bank credits, and internal ledgers.
+
+It is particularly useful when records cannot be reliably matched using a single identifier because transaction IDs, amounts, settlement structures, or dates differ across systems.
+
+## Project Context
+
+Concord was originally built for the Razorpay Buildathon. I am also using it as a capstone project for the AI Fluency program because it represents an end-to-end system where I applied AI-assisted development, evaluation, engineering judgment, and transparent communication about system limitations.
+
+## Evaluation Summary
+
+Concord was evaluated on a frozen synthetic dataset containing 120 scenarios and 245 records.
+
+Key results from the current canonical evaluation:
+
+- Layer 1 matched 86 of 245 records (35.1%) with 100% deterministic precision and zero false positives.
+- All 77 residual Layer 2 scenarios were evaluated.
+- Layer 2 produced 46 valid proposals, 16 no-proposal outcomes, and 15 genuine provider failures.
+- At the scenario level, 15 proposals initially met the auto-accept confidence threshold, with 9 correct and 6 false accepts before production guardrails.
+- Production Layer 3 guardrails reject unsafe cases using deterministic financial-evidence and duplicate protections.
+
+See the detailed evaluation section below for methodology, metric definitions, known limitations, and incident analysis.
+
 ## Current MVP Capabilities
 
 **Implemented (Day 1–2):**
@@ -21,11 +45,11 @@ Merchants and finance teams reconcile payments across multiple systems — settl
 - Duplicate `record_id` detection with fast failure
 - Deterministic, input-order-independent outputs
 
-**Intentionally not implemented:**
+**Not implemented in the initial Day 1–2 deterministic MVP:**
 - Narration-based or fuzzy text matching
 - Partial refunds and ambiguous fee deductions
 - Complex split / aggregated settlements
-- AI-assisted Layer 2 matching
+- AI-assisted Layer 2 matching (implemented in the subsequent Layer 2 pipeline)
 - Symmetric date-window tolerance already resolves standard T+1/T+2 delay cases; directional, source-aware settlement-timing-offset reasoning is deferred.
 
 **Implemented (Day 3): Synthetic evaluation pipeline**
@@ -56,16 +80,70 @@ Merchants and finance teams reconcile payments across multiple systems — settl
 - End-to-end runner with configurable sample limiting to control API usage; orchestrator injected for mockable testing with no API-key dependency
 - Diagnostic scripts (`scripts/diagnose_day4.py`, `scripts/diagnose_day4_all.py`) for local inspection of reconstruction and retrieval without LLM calls
 
+## How It Works
+
+1. Upload settlement, bank, and ledger CSV files.
+2. Concord normalizes records into a canonical format.
+3. Layer 1 attempts deterministic reconciliation using:
+   - Exact identifier matching
+   - Amount and configurable date-window matching
+4. Ambiguous or unresolved records remain explicit residuals rather than being force-matched.
+5. For the frozen evaluation dataset, pre-computed Layer 2 AI proposals are replayed through deterministic Layer 3 guardrails.
+6. Records are routed into deterministic matches, AI auto-accepted matches, human review, or exceptions.
+7. Users can inspect individual reconciliation decisions and their supporting context.
+
 ## Architecture
 
 ```
-Raw source rows
-    ↓ normalize_record()
-NormalizedRecord (canonical domain model)
-    ↓ reconcile()
-ReconciliationResult
-    ├── decisions: Tuple[ReconciliationDecision, ...]
-    └── residual_record_ids: Tuple[str, ...]
+┌──────────────────────────────────────────────┐
+│               Input Sources                  │
+│                                              │
+│  Settlement CSV   Bank CSV   Ledger CSV      │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│           Normalization Layer                │
+│                                              │
+│       Canonical NormalizedRecord             │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│        Layer 1: Deterministic Matching       │
+│                                              │
+│  • Exact ID                                  │
+│  • Amount + Date Window                      │
+│  • Ambiguity Protection                      │
+└───────────────────────┬──────────────────────┘
+                        │
+             Matched / Residual
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│         Layer 2: AI Match Proposals          │
+│                                              │
+│  Candidate Retrieval → Structured Proposal   │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────┐
+│        Layer 3: Deterministic Guardrails     │
+│                                              │
+│  • Confidence thresholds                     │
+│  • Financial evidence                        │
+│  • Duplicate protection                      │
+└───────────────────────┬──────────────────────┘
+                        │
+                        ▼
+       ┌────────────────────────────────┐
+       │        Final Routing           │
+       │                                │
+       │  Deterministic Match           │
+       │  AI Auto-Accepted              │
+       │  Human Review                  │
+       │  Exception                     │
+       └────────────────────────────────┘
 ```
 
 Evaluation and ground-truth concepts are architecturally separated from the matching engine to prevent signal leakage.
@@ -302,6 +380,16 @@ The intended production topology is a Vite/React frontend on Vercel talking to t
   - `VITE_API_BASE_URL` — must be set to the Render backend URL, e.g. `https://concord-api.onrender.com`. In production the app reads only this variable; the `http://127.0.0.1:8000` fallback in `frontend/src/api/concord.ts` is for local development only. Never prefix a secret with `VITE_`.
 - **SPA routing:** `frontend/vercel.json` rewrites unmatched paths to `/index.html` so deep links such as `/app/queue` and `/app/records/{id}` work on refresh.
 - The demo-data button on the Upload page fetches the frozen evaluation dataset from `/fixtures/*.csv`, so one click exercises the full path: upload → fingerprint match → Layer 2 artifact replay → Layer 3 guardrails.
+
+## AI Transparency
+
+AI tools, including Claude, were used as development and thinking assistants during the project.
+
+AI assisted with exploring implementation approaches, reviewing architecture and code, debugging, improving documentation, and challenging design decisions. I remained responsible for the final engineering decisions and verification of the system.
+
+I personally reviewed and tested the implementation, validated evaluation results against the frozen dataset and canonical artifacts, investigated false accepts and provider failures, and decided what functionality and limitations were safe to claim publicly.
+
+The metrics and limitations documented in this repository are based on the project's evaluation artifacts and tests. AI assistance was used to accelerate development and reasoning, not as a substitute for verification.
 
 ## Data Retention
 
