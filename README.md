@@ -2,6 +2,18 @@
 
 Concord is a precision-first settlement reconciliation engine that matches financial records across settlement, bank, and ledger sources. It prioritizes accuracy over coverage: a false match is worse than an unresolved record.
 
+## TL;DR
+
+- **What:** A three-layer settlement reconciliation engine — deterministic matching, AI-assisted proposals with deterministic validation, and confidence-based routing — evaluated end-to-end on a frozen, fingerprint-verified synthetic dataset.
+- **Problem:** Merchants and finance teams reconcile payments across gateway settlement reports, bank statements, and internal ledgers that disagree on order IDs, amounts, and dates. Naive automated matching produces false positives that erode trust in the numbers.
+- **What makes the engineering approach interesting:** The design goal is *zero false accepts*, not maximum match rate. Layer 1 never emits an ambiguous match; Layer 2 LLM proposals are never trusted directly — they pass deterministic semantic validation and routing guardrails (three real incidents and their fixes are documented below with regression tests); Layer 3 routes every record into auto-accept / human-review / exception buckets so nothing disappears silently.
+- **Design philosophy:** Precision over coverage. Unmatched records stay visible as residuals, every metric is computed from a SHA-256-verified frozen dataset, and provider failures are disclosed rather than converted into flattering numbers.
+- **Evidence in this repo:** 34 commits with day-by-day progression, a test suite covering invariants/acceptance/regression scenarios, CI on Python 3.11–3.13, and evaluation reports whose numbers trace back to committed artifacts (`data/current_evaluation_report.json`).
+
+## Project status
+
+Personal engineering project built in six documented increments between Aug 26 and Sep 4, 2026 — the `Day 1`–`Day 6` labels below are those increments and map to the commit history. The domain is modeled on payment-gateway settlement workflows (the repo's Razorpay namesake; amounts are handled as integer paise). It is **not production financial software**: evaluation runs on a synthetic dataset with controlled edge-case quotas, and the API's evaluation path replays recorded model outputs (artifact replay) rather than calling the LLM at request time. A FastAPI backend and React frontend are included; deployment configuration targets Render + Vercel as described under [Deployment](#deployment-vercel-frontend--render-backend).
+
 ## Problem
 
 Merchants and finance teams reconcile payments across multiple systems — settlement reports from payment gateways, bank credit statements, and internal ledger entries. These sources rarely agree perfectly on order IDs, amounts, or dates. Manual reconciliation is slow and error-prone; naive automated matching produces false positives that erode trust.
